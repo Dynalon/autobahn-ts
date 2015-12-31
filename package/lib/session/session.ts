@@ -25,7 +25,9 @@ Date.now = Date.now || function() { return +new Date; };
 
 import Event from "./event";
 import Error from "./error";
-
+import Invocation from "./invocation";
+import Result from "./result";
+import Publication from "./publication";
 
 // WAMP "Advanced Profile" support in AutobahnJS per role
 //
@@ -74,25 +76,6 @@ var WAMP_FEATURES = {
 function newid () {
    return Math.floor(Math.random() * 9007199254740992);
 }
-
-
-var Invocation = function (caller, progress, procedure) {
-
-   var self = this;
-
-   self.caller = caller;
-   self.progress = progress;
-   self.procedure = procedure;
-};
-
-
-var Result = function (args, kwargs) {
-
-   var self = this;
-
-   self.args = args || [];
-   self.kwargs = kwargs || {};
-};
 
 
 var Subscription = function (topic, handler, options, session, id) {
@@ -157,13 +140,6 @@ Registration.prototype.unregister = function () {
 };
 
 
-var Publication = function (id) {
-
-   var self = this;
-   self.id = id;
-};
-
-
 var MSG_TYPE = {
    HELLO: 1,
    WELCOME: 2,
@@ -191,7 +167,6 @@ var MSG_TYPE = {
    INTERRUPT: 69,
    YIELD: 70
 };
-
 
 
 var Session = function (socket, defer, onchallenge) {
