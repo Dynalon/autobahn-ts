@@ -33,6 +33,9 @@ import Subscription from "./subscription";
 import Registration from "./registration";
 import WAMP_FEATURES from "./wamp_features";
 
+interface NumberedHashtable {
+    [id: number]: any;
+}
 
 // generate a WAMP ID
 //
@@ -98,14 +101,14 @@ class Session {
 
     // outstanding requests;
     private _publish_reqs = {};
-    private _subscribe_reqs = {};
+    private _subscribe_reqs: NumberedHashtable = {};
     private _unsubscribe_reqs = {};
     private _call_reqs = {};
     private _register_reqs = {};
     private _unregister_reqs = {};
 
     // subscriptions in place;
-    private _subscriptions = {};
+    private _subscriptions: NumberedHashtable = {};
 
     // registrations in place;
     private _registrations = {};
@@ -120,12 +123,8 @@ class Session {
     private _caller_disclose_me = false;
     private _publisher_disclose_me = false;
 
-    private _send_wamp: Function;
-    private _protocol_violation: Function;
-
     private _MESSAGE_MAP = {};
 
-    private _process_SUBSCRIBED: Function;
     private _process_SUBSCRIBE_ERROR: Function;
     private _process_UNSUBSCRIBED: Function;
     private _process_UNSUBSCRIBE_ERROR: Function;
@@ -207,49 +206,7 @@ class Session {
 
         this._id = null;
 
-        this._send_wamp = function(msg) {
-            log.debug(msg);
-            // forward WAMP message to be sent to WAMP transport
-            self._socket.send(msg);
-        };
-
-        this._protocol_violation = function(reason) {
-            log.debug("failing transport due to protocol violation: " + reason);
-            self._socket.close(1002, "protocol violation: " + reason);
-        };
-
         self._MESSAGE_MAP[MSG_TYPE.ERROR] = {};
-
-        self._process_SUBSCRIBED = function(msg) {
-            //
-            // process SUBSCRIBED reply to SUBSCRIBE
-            //
-            var request = msg[1];
-            var subscription = msg[2];
-
-            if (request in self._subscribe_reqs) {
-
-                var r = self._subscribe_reqs[request];
-
-                var d = r[0];
-                var topic = r[1];
-                var handler = r[2];
-                var options = r[3];
-
-                if (!(subscription in self._subscriptions)) {
-                    self._subscriptions[subscription] = [];
-                }
-                var sub = new Subscription(topic, handler, options, self, subscription);
-                self._subscriptions[subscription].push(sub);
-
-                d.resolve(sub);
-
-                delete self._subscribe_reqs[request];
-
-            } else {
-                self._protocol_violation("SUBSCRIBED received for non-pending request ID " + request);
-            }
-        };
         self._MESSAGE_MAP[MSG_TYPE.SUBSCRIBED] = self._process_SUBSCRIBED;
 
 
@@ -925,6 +882,62 @@ class Session {
             self._created = performance.now();
         } else {
             self._created = Date.now();
+        }
+    };
+
+
+    private _protocol_violation = function(reason: string) {
+        log.debug("failing transport due to protocol violation: " + reason);
+        this._socket.close(1002, "protocol violation: " + reason);
+    }
+
+    private _send_wamp(msg) {
+        log.debug(msg);
+        // forward WAMP message to be sent to WAMP transport
+        this._socket.send(msg);
+    };
+
+    /**
+     * Called when the _Broker_ answers to a SUBSCRIBE message with a "SUBSCRIBED"
+     * response.
+     *
+     * This resolves the promises that expresses the awaited SUBSCRIBED response.
+     *
+     * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02
+     *      Section 8.1.2
+     *
+     * OPENQUESTION: Timeouts?
+     * OPENQUESTION: Can the promise be rejected from anywhere if no answer arrives?
+     *
+    */
+    private _process_SUBSCRIBED = (msg: Array<number>) => {
+        //
+        // process SUBSCRIBED reply to SUBSCRIBE
+        //
+        var request: number = msg[1];
+        var subscription: number = msg[2];
+
+        if (request in this._subscribe_reqs) {
+
+            var r = this._subscribe_reqs[request];
+
+            var d: Promise<any> = r[0];
+            var topic: string = r[1];
+            var handler = r[2];
+            var options = r[3];
+
+            if (!(subscription in this._subscriptions)) {
+                this._subscriptions[subscription] = [];
+            }
+            var sub = new Subscription(topic, handler, options, this, subscription);
+            this._subscriptions[subscription].push(sub);
+
+            d.resolve(sub);
+
+            delete this._subscribe_reqs[request];
+
+        } else {
+            this._protocol_violation("SUBSCRIBED received for non-pending request ID " + request);
         }
     };
 
