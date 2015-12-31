@@ -16,6 +16,7 @@
 
 var when = require('when');
 var when_fn = require("when/function");
+import {Promise} from 'when';
 
 var log = require('../log.js');
 var util = require('../util.js');
@@ -1021,7 +1022,7 @@ class Session {
     }
 
 
-    call(procedure, args, kwargs, options) {
+    call(procedure, args, kwargs, options): Promise<any> {
 
         util.assert(typeof procedure === 'string', "Session.call: <procedure> must be a string");
         util.assert(!args || Array.isArray(args), "Session.call: <args> must be an array []");
@@ -1073,7 +1074,7 @@ class Session {
     }
 
 
-    publish(topic, args, kwargs, options) {
+    publish(topic: string, args: Array<any>, kwargs: Object, options?): Promise<any> {
 
         util.assert(typeof topic === 'string', "Session.publish: <topic> must be a string");
         util.assert(!args || Array.isArray(args), "Session.publish: <args> must be an array []");
@@ -1130,7 +1131,7 @@ class Session {
     }
 
 
-    subscribe(topic, handler, options) {
+    subscribe(topic: string, handler: Function, options?: Object): Promise<any> {
 
         util.assert(typeof topic === 'string', "Session.subscribe: <topic> must be a string");
         util.assert(typeof handler === 'function', "Session.subscribe: <handler> must be a function");
@@ -1171,7 +1172,7 @@ class Session {
     }
 
 
-    register(procedure, endpoint, options) {
+    register(procedure: string, endpoint: Function, options: Object): Promise<any> {
 
         util.assert(typeof procedure === 'string', "Session.register: <procedure> must be a string");
         util.assert(typeof endpoint === 'function', "Session.register: <endpoint> must be a function");
@@ -1207,12 +1208,12 @@ class Session {
             // whenjs has the actual user promise in an attribute
             return d.promise;
         } else {
-            return d;
+            return d as any;
         }
     }
 
 
-    unsubscribe(subscription) {
+    unsubscribe(subscription: Subscription) {
 
         util.assert(subscription instanceof Subscription, "Session.unsubscribe: <subscription> must be an instance of class autobahn.Subscription");
 
@@ -1270,7 +1271,7 @@ class Session {
     }
 
 
-    unregister(registration) {
+    unregister(registration: Registration) {
 
         util.assert(registration instanceof Registration, "Session.unregister: <registration> must be an instance of class autobahn.Registration");
 
@@ -1307,7 +1308,7 @@ class Session {
     }
 
 
-    prefix(prefix, uri) {
+    prefix(prefix: string, uri: string) {
 
         util.assert(typeof prefix === 'string', "Session.prefix: <prefix> must be a string");
         util.assert(!uri || typeof uri === 'string', "Session.prefix: <uri> must be a string or falsy");
@@ -1324,7 +1325,7 @@ class Session {
     }
 
 
-    resolve(curie) {
+    resolve(curie: string) {
 
         util.assert(typeof curie === 'string', "Session.resolve: <curie> must be a string");
 
