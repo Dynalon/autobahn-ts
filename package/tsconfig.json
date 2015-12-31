@@ -1,0 +1,11 @@
+{
+  "files": [
+    "lib/autobahn.ts",
+    "lib/compat.d.ts",
+    "typings/main.d.ts"
+  ],
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5"
+  }
+}
