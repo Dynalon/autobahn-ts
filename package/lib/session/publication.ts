@@ -13,9 +13,9 @@
 
 export default class Publication {
 
-    public id;
+    public id: number;
 
-    constructor(id) {
+    constructor(id: number) {
         this.id = id;
     }
 }

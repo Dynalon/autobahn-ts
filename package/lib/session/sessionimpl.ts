@@ -53,6 +53,11 @@ type UnsubscribeRequest = [
     number
 ];
 
+type PublishRequest = [
+    Deferred<Publication> & Promise<Publication>,
+    // options object
+    Object
+]
 
 // generate a WAMP ID
 //
@@ -118,7 +123,7 @@ class Session {
     private _transport_is_closing = false;
 
     // outstanding requests;
-    private _publish_reqs = {};
+    private _publish_reqs: NumberedHashtable<PublishRequest> = {};
 
     private _subscribe_reqs: NumberedHashtable<SubscribeRequest> = {};
     private _unsubscribe_reqs: NumberedHashtable<UnsubscribeRequest> = {};
@@ -145,9 +150,6 @@ class Session {
 
     private _MESSAGE_MAP = {};
 
-    private _process_UNSUBSCRIBE_ERROR: Function;
-    private _process_PUBLISHED: Function;
-    private _process_PUBLISH_ERROR: Function;
     private _process_EVENT: Function;
     private _process_REGISTERED: Function;
     private _process_REGISTER_ERROR: Function;
@@ -228,83 +230,8 @@ class Session {
         self._MESSAGE_MAP[MSG_TYPE.SUBSCRIBED] = self._process_SUBSCRIBED;
         self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.SUBSCRIBE] = self._process_SUBSCRIBE_ERROR;
         self._MESSAGE_MAP[MSG_TYPE.UNSUBSCRIBED] = self._process_UNSUBSCRIBED;
-
-
-        self._process_UNSUBSCRIBE_ERROR = function(msg) {
-            //
-            // process ERROR reply to UNSUBSCRIBE
-            //
-            var request = msg[2];
-            if (request in self._unsubscribe_reqs) {
-
-                var details = msg[3];
-                var error = new Error(msg[4], msg[5], msg[6]);
-
-                var r = self._unsubscribe_reqs[request];
-
-                var d = r[0];
-                var subscription = r[1];
-
-                d.reject(error);
-
-                delete self._unsubscribe_reqs[request];
-
-            } else {
-                self._protocol_violation("UNSUBSCRIBE-ERROR received for non-pending request ID " + request);
-            }
-        };
         self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.UNSUBSCRIBE] = self._process_UNSUBSCRIBE_ERROR;
-
-
-        self._process_PUBLISHED = function(msg) {
-            //
-            // process PUBLISHED reply to PUBLISH
-            //
-            var request = msg[1];
-            var publication = msg[2];
-
-            if (request in self._publish_reqs) {
-
-                var r = self._publish_reqs[request];
-
-                var d = r[0];
-                var options = r[1];
-
-                var pub = new Publication(publication);
-                d.resolve(pub);
-
-                delete self._publish_reqs[request];
-
-            } else {
-                self._protocol_violation("PUBLISHED received for non-pending request ID " + request);
-            }
-        };
         self._MESSAGE_MAP[MSG_TYPE.PUBLISHED] = self._process_PUBLISHED;
-
-
-        self._process_PUBLISH_ERROR = function(msg) {
-            //
-            // process ERROR reply to PUBLISH
-            //
-            var request = msg[2];
-            if (request in self._publish_reqs) {
-
-                var details = msg[3];
-                var error = new Error(msg[4], msg[5], msg[6]);
-
-                var r = self._publish_reqs[request];
-
-                var d = r[0];
-                var options = r[1];
-
-                d.reject(error);
-
-                delete self._publish_reqs[request];
-
-            } else {
-                self._protocol_violation("PUBLISH-ERROR received for non-pending request ID " + request);
-            }
-        };
         self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.PUBLISH] = self._process_PUBLISH_ERROR;
 
 
@@ -894,7 +821,7 @@ class Session {
             var [, , , details, error, args, kwargs] = msg;
             var err = new Error(error, args, kwargs);
 
-            var [d,] = this._subscribe_reqs[request];
+            var [d, ] = this._subscribe_reqs[request];
 
             d.reject(err);
 
@@ -945,10 +872,10 @@ class Session {
                 // router actively revoked our subscription
                 //
 
-                // TODO added throw statement as I am not sure if this is correct code;
+                // TODO added assertion statement as I am not sure if this is correct code;
                 // need to verify that "details" is of correct type, and subscription_id will
                 // be of type number for sure; however this code is currently hard to trigger
-                throw 'FIXME';
+                util.assert(msg[2] && typeof msg[2].subscription === 'number');
 
                 var details = msg[2];
                 var subscription_id: number = details.subscription;
@@ -968,6 +895,77 @@ class Session {
             } else {
                 this._protocol_violation("UNSUBSCRIBED received for non-pending request ID " + request);
             }
+        }
+    }
+
+    /**
+     * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-8.1.6
+     */
+    private _process_UNSUBSCRIBE_ERROR = (msg: Array<any>) => {
+        //
+        // process ERROR reply to UNSUBSCRIBE
+        //
+        var [unused1, unused2, request, details, error, args, kwargs] = msg;
+        if (request in this._unsubscribe_reqs) {
+
+            var err = new Error(error, args, kwargs);
+
+            var [d, subscription] = this._unsubscribe_reqs[request];
+
+            d.reject(err);
+
+            delete this._unsubscribe_reqs[request];
+
+        } else {
+            this._protocol_violation("UNSUBSCRIBE-ERROR received for non-pending request ID " + request);
+        }
+    }
+
+    private _process_PUBLISHED = (msg: [any, number, number]) => {
+        //
+        // process PUBLISHED reply to PUBLISH
+        //
+        var [unused1, request, publication] = msg;
+
+        if (request in this._publish_reqs) {
+
+            var [d, options] = this._publish_reqs[request];
+
+            var pub = new Publication(publication);
+            d.resolve(pub);
+
+            delete this._publish_reqs[request];
+
+        } else {
+            this._protocol_violation("PUBLISHED received for non-pending request ID " + request);
+        }
+    }
+
+
+    // TODO better type information for msg here
+    private _process_PUBLISH_ERROR = (msg: Array<any>) => {
+        //
+        // process ERROR reply to PUBLISH
+        //
+        var request: number = msg[2];
+        util.assert(typeof request === 'number', "FIXME: request was not a number");
+
+        if (request in this._publish_reqs) {
+
+            var details = msg[3];
+            var error = new Error(msg[4], msg[5], msg[6]);
+
+            var r = this._publish_reqs[request];
+
+            var d = r[0];
+            var options = r[1];
+
+            d.reject(error);
+
+            delete this._publish_reqs[request];
+
+        } else {
+            this._protocol_violation("PUBLISH-ERROR received for non-pending request ID " + request);
         }
     }
 
