@@ -142,7 +142,6 @@ class Session {
 
     private _MESSAGE_MAP = {};
 
-    private _process_SUBSCRIBE_ERROR: Function;
     private _process_UNSUBSCRIBED: Function;
     private _process_UNSUBSCRIBE_ERROR: Function;
     private _process_PUBLISHED: Function;
@@ -225,30 +224,6 @@ class Session {
 
         self._MESSAGE_MAP[MSG_TYPE.ERROR] = {};
         self._MESSAGE_MAP[MSG_TYPE.SUBSCRIBED] = self._process_SUBSCRIBED;
-
-
-        self._process_SUBSCRIBE_ERROR = function(msg) {
-            //
-            // process ERROR reply to SUBSCRIBE
-            //
-            var request = msg[2];
-            if (request in self._subscribe_reqs) {
-
-                var details = msg[3];
-                var error = new Error(msg[4], msg[5], msg[6]);
-
-                var r = self._subscribe_reqs[request];
-
-                var d = r[0];
-
-                d.reject(error);
-
-                delete self._subscribe_reqs[request];
-
-            } else {
-                self._protocol_violation("SUBSCRIBE-ERROR received for non-pending request ID " + request);
-            }
-        };
         self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.SUBSCRIBE] = self._process_SUBSCRIBE_ERROR;
 
 
@@ -921,8 +896,7 @@ class Session {
      * This resolves the promises that expresses the awaited SUBSCRIBED response and creates
      * a new subscription.
      *
-     * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02
-     *      Section 8.1.2
+     * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-8.1.2
      *
      * OPENQUESTION: Timeouts?
      * OPENQUESTION: Can the promise be rejected from anywhere if no answer arrives?
@@ -953,6 +927,39 @@ class Session {
             this._protocol_violation("SUBSCRIBED received for non-pending request ID " + request);
         }
     };
+
+
+    /**
+     * When the request for subscription cannot be fulfilled by the _Broker_, the _Broker_
+     * sends back an "ERROR" message to the _Subscriber_
+     *
+     * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-8.1.3
+     *
+     * OPENQUESTION: The IETF draft specifies the message to be of format:
+     *     [ERROR, SUBSCRIBE, SUBSCRIBE.Request|id, Details|dict, Error|uri]
+     *     But why do we have an array of length 7 here as msg argument?
+     *
+     */
+    private _process_SUBSCRIBE_ERROR = (msg: Array<any>) => {
+        //
+        // process ERROR reply to SUBSCRIBE
+        //
+        var request = msg[2];
+        if (request in this._subscribe_reqs) {
+
+            var [, , , details, error, args, kwargs] = msg;
+            var err = new Error(error, args, kwargs);
+
+            var [d,] = this._subscribe_reqs[request];
+
+            d.reject(err);
+
+            delete this._subscribe_reqs[request];
+
+        } else {
+            this._protocol_violation("SUBSCRIBE-ERROR received for non-pending request ID " + request);
+        }
+    }
 
 
     log() {
