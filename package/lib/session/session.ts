@@ -29,6 +29,7 @@ import Invocation from "./invocation";
 import Result from "./result";
 import Publication from "./publication";
 import Subscription from "./subscription";
+import Registration from "./registration";
 
 // WAMP "Advanced Profile" support in AutobahnJS per role
 //
@@ -77,37 +78,6 @@ var WAMP_FEATURES = {
 function newid () {
    return Math.floor(Math.random() * 9007199254740992);
 }
-
-
-var Registration = function (procedure, endpoint, options, session, id) {
-
-   var self = this;
-
-   self.procedure = procedure;
-   self.endpoint = endpoint;
-   self.options = options || {};
-   self.session = session;
-   self.id = id;
-
-   self.active = true;
-
-   // this will fire when the endpoint is unregistered
-   self._on_unregister = session._defer();
-
-   if (self._on_unregister.promise.then) {
-      // whenjs has the actual user promise in an attribute
-      self.on_unregister = self._on_unregister.promise;
-   } else {
-      self.on_unregister = self._on_unregister;
-   }
-};
-
-
-Registration.prototype.unregister = function () {
-
-   var self = this;
-   return self.session.unregister(self);
-};
 
 
 var MSG_TYPE = {
