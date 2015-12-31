@@ -22,8 +22,16 @@ export default class Subscription {
     public id: string;
     public active: boolean = true;
 
-    public on_unsubscribe: Promise<any>;
-    private _on_unsubscribe: Deferred<any>;
+    public get on_unsubscribe() {
+        if (this._on_unsubscribe.promise.then) {
+            // whenjs has the actual user promise in an attribute
+            return this._on_unsubscribe.promise;
+        } else {
+            return this._on_unsubscribe as any;
+        }
+    }
+
+    public _on_unsubscribe: Deferred<any>;
 
     constructor(topic, handler, options, session, id) {
 
@@ -35,13 +43,6 @@ export default class Subscription {
 
         // this will fire when the handler is unsubscribed
         this._on_unsubscribe = session._defer();
-
-        if (this._on_unsubscribe.promise.then) {
-            // whenjs has the actual user promise in an attribute
-            this.on_unsubscribe = this._on_unsubscribe.promise;
-        } else {
-            this.on_unsubscribe = this._on_unsubscribe as any;
-        }
     }
 
     unsubscribe() {

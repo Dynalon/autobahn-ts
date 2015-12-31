@@ -16,7 +16,7 @@
 
 var when = require('when');
 var when_fn = require("when/function");
-import {Promise} from 'when';
+import {Promise, Deferred} from 'when';
 
 var log = require('../log.js');
 var util = require('../util.js');
@@ -33,9 +33,23 @@ import Subscription from "./subscription";
 import Registration from "./registration";
 import WAMP_FEATURES from "./wamp_features";
 
-interface NumberedHashtable {
-    [id: number]: any;
+interface NumberedHashtable<T> {
+    [id: number]: T;
 }
+
+/**
+ * Tuple type representing the list of SUbSCRIBE requests that are pending.
+ */
+type SubscribeRequest = [
+    // deferred that resolves the the SUBSCRIBED ack from the broker arrived
+    Deferred<Subscription>,
+    // topic
+    string,
+    // handler
+    Function,
+    // options
+    Object
+];
 
 // generate a WAMP ID
 //
@@ -81,7 +95,8 @@ class Session {
     private _socket;
 
     // the Deferred factory to use
-    private _defer;
+    // TODO don't use union type, don't use undefined object returns at all
+    private _defer: () => Promise<any> & Deferred<any>;
 
     // the WAMP authentication challenge handler
     private _onchallenge: Function;
@@ -101,14 +116,16 @@ class Session {
 
     // outstanding requests;
     private _publish_reqs = {};
-    private _subscribe_reqs: NumberedHashtable = {};
+
+    private _subscribe_reqs: NumberedHashtable<SubscribeRequest> = {};
+
     private _unsubscribe_reqs = {};
     private _call_reqs = {};
     private _register_reqs = {};
     private _unregister_reqs = {};
 
     // subscriptions in place;
-    private _subscriptions: NumberedHashtable = {};
+    private _subscriptions: NumberedHashtable<Array<Subscription>> = {};
 
     // registrations in place;
     private _registrations = {};
@@ -254,7 +271,7 @@ class Session {
                     // only sent when subs got empty
                     for (var i = 0; i < subs.length; ++i) {
                         subs[i].active = false;
-                        subs[i].on_unsubscribe.resolve();
+                        subs[i]._on_unsubscribe.resolve();
                     }
                     delete self._subscriptions[subscription];
                 }
@@ -901,7 +918,8 @@ class Session {
      * Called when the _Broker_ answers to a SUBSCRIBE message with a "SUBSCRIBED"
      * response.
      *
-     * This resolves the promises that expresses the awaited SUBSCRIBED response.
+     * This resolves the promises that expresses the awaited SUBSCRIBED response and creates
+     * a new subscription.
      *
      * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02
      *      Section 8.1.2
@@ -910,7 +928,7 @@ class Session {
      * OPENQUESTION: Can the promise be rejected from anywhere if no answer arrives?
      *
     */
-    private _process_SUBSCRIBED = (msg: Array<number>) => {
+    private _process_SUBSCRIBED = (msg: [number, number, number]) => {
         //
         // process SUBSCRIBED reply to SUBSCRIBE
         //
@@ -919,12 +937,7 @@ class Session {
 
         if (request in this._subscribe_reqs) {
 
-            var r = this._subscribe_reqs[request];
-
-            var d: Promise<any> = r[0];
-            var topic: string = r[1];
-            var handler = r[2];
-            var options = r[3];
+            var [d, topic, handler, options] = this._subscribe_reqs[request];
 
             if (!(subscription in this._subscriptions)) {
                 this._subscriptions[subscription] = [];
