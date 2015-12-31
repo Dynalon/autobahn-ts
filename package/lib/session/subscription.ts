@@ -19,7 +19,7 @@ export default class Subscription {
     public handler;
     public options;
     public session;
-    public id: string;
+    public id: number;
     public active: boolean = true;
 
     public get on_unsubscribe() {

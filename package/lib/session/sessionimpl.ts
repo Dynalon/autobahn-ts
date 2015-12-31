@@ -37,12 +37,9 @@ interface NumberedHashtable<T> {
     [id: number]: T;
 }
 
-/**
- * Tuple type representing the list of SUbSCRIBE requests that are pending.
- */
 type SubscribeRequest = [
     // deferred that resolves the the SUBSCRIBED ack from the broker arrived
-    Deferred<Subscription>,
+    Deferred<Subscription> & Promise<Subscription>,
     // topic
     string,
     // handler
@@ -50,6 +47,12 @@ type SubscribeRequest = [
     // options
     Object
 ];
+
+type UnsubscribeRequest = [
+    Deferred<boolean> & Promise<boolean>,
+    number
+];
+
 
 // generate a WAMP ID
 //
@@ -118,8 +121,8 @@ class Session {
     private _publish_reqs = {};
 
     private _subscribe_reqs: NumberedHashtable<SubscribeRequest> = {};
+    private _unsubscribe_reqs: NumberedHashtable<UnsubscribeRequest> = {};
 
-    private _unsubscribe_reqs = {};
     private _call_reqs = {};
     private _register_reqs = {};
     private _unregister_reqs = {};
@@ -142,7 +145,6 @@ class Session {
 
     private _MESSAGE_MAP = {};
 
-    private _process_UNSUBSCRIBED: Function;
     private _process_UNSUBSCRIBE_ERROR: Function;
     private _process_PUBLISHED: Function;
     private _process_PUBLISH_ERROR: Function;
@@ -225,62 +227,6 @@ class Session {
         self._MESSAGE_MAP[MSG_TYPE.ERROR] = {};
         self._MESSAGE_MAP[MSG_TYPE.SUBSCRIBED] = self._process_SUBSCRIBED;
         self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.SUBSCRIBE] = self._process_SUBSCRIBE_ERROR;
-
-
-        self._process_UNSUBSCRIBED = function(msg) {
-            //
-            // process UNSUBSCRIBED reply to UNSUBSCRIBE
-            //
-            var request = msg[1];
-
-            if (request in self._unsubscribe_reqs) {
-
-                var r = self._unsubscribe_reqs[request];
-
-                var d = r[0];
-                var subscription = r[1];
-
-                if (subscription.id in self._subscriptions) {
-                    var subs = self._subscriptions[subscription.id];
-                    // the following should actually be NOP, since UNSUBSCRIBE was
-                    // only sent when subs got empty
-                    for (var i = 0; i < subs.length; ++i) {
-                        subs[i].active = false;
-                        subs[i]._on_unsubscribe.resolve();
-                    }
-                    delete self._subscriptions[subscription];
-                }
-
-                d.resolve(true);
-
-                delete self._unsubscribe_reqs[request];
-
-            } else {
-
-                if (request === 0) {
-
-                    // router actively revoked our subscription
-                    //
-                    var details = msg[2];
-                    var subscription_id = details.subscription;
-                    var reason = details.reason;
-
-                    if (subscription_id in self._subscriptions) {
-                        var subs = self._subscriptions[subscription_id];
-                        for (var i = 0; i < subs.length; ++i) {
-                            subs[i].active = false;
-                            subs[i]._on_unsubscribe.resolve(reason);
-                        }
-                        delete self._subscriptions[subscription_id];
-                    } else {
-                        self._protocol_violation("non-voluntary UNSUBSCRIBED received for non-existing subscription ID " + subscription_id);
-                    }
-
-                } else {
-                    self._protocol_violation("UNSUBSCRIBED received for non-pending request ID " + request);
-                }
-            }
-        };
         self._MESSAGE_MAP[MSG_TYPE.UNSUBSCRIBED] = self._process_UNSUBSCRIBED;
 
 
@@ -941,10 +887,8 @@ class Session {
      *
      */
     private _process_SUBSCRIBE_ERROR = (msg: Array<any>) => {
-        //
-        // process ERROR reply to SUBSCRIBE
-        //
-        var request = msg[2];
+
+        var request: number = msg[2];
         if (request in this._subscribe_reqs) {
 
             var [, , , details, error, args, kwargs] = msg;
@@ -961,6 +905,71 @@ class Session {
         }
     }
 
+    /**
+     * Handles the UNSUBSCRIBED message.
+     *
+     * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-8.1.5
+     *
+     * OPENQUESTION: Why does the IETF draft say msg has length of 2, and we use it here with
+     *     length of 5?
+     */
+    private _process_UNSUBSCRIBED = (msg) => {
+        var request: number = msg[1];
+
+        if (request in this._unsubscribe_reqs) {
+
+            var r = this._unsubscribe_reqs[request];
+
+            var d = r[0];
+            var subscription_id: number = r[1];
+
+            if (subscription_id in this._subscriptions) {
+                let subs = this._subscriptions[subscription_id];
+                // the following should actually be NOP, since UNSUBSCRIBE was
+                // only sent when subs got empty
+                for (var i = 0; i < subs.length; ++i) {
+                    subs[i].active = false;
+                    subs[i]._on_unsubscribe.resolve();
+                }
+                delete this._subscriptions[subscription_id];
+            }
+
+            d.resolve(true);
+
+            delete this._unsubscribe_reqs[request];
+
+        } else {
+
+            if (request === 0) {
+
+                // router actively revoked our subscription
+                //
+
+                // TODO added throw statement as I am not sure if this is correct code;
+                // need to verify that "details" is of correct type, and subscription_id will
+                // be of type number for sure; however this code is currently hard to trigger
+                throw 'FIXME';
+
+                var details = msg[2];
+                var subscription_id: number = details.subscription;
+                var reason = details.reason;
+
+                if (subscription_id in this._subscriptions) {
+                    let subs = this._subscriptions[subscription_id];
+                    for (var i = 0; i < subs.length; ++i) {
+                        subs[i].active = false;
+                        subs[i]._on_unsubscribe.resolve(reason);
+                    }
+                    delete this._subscriptions[subscription_id];
+                } else {
+                    this._protocol_violation("non-voluntary UNSUBSCRIBED received for non-existing subscription ID " + subscription_id);
+                }
+
+            } else {
+                this._protocol_violation("UNSUBSCRIBED received for non-pending request ID " + request);
+            }
+        }
+    }
 
     log() {
         var self = this;
