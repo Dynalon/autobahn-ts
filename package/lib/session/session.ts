@@ -30,47 +30,7 @@ import Result from "./result";
 import Publication from "./publication";
 import Subscription from "./subscription";
 import Registration from "./registration";
-
-// WAMP "Advanced Profile" support in AutobahnJS per role
-//
-var WAMP_FEATURES = {
-   caller: {
-      features: {
-         caller_identification: true,
-         //call_timeout: true,
-         //call_canceling: true,
-         progressive_call_results: true
-      }
-   },
-   callee: {
-      features: {
-         caller_identification: true,
-         //call_trustlevels: true,
-         pattern_based_registration: true,
-         shared_registration: true,
-         //call_timeout: true,
-         //call_canceling: true,
-         progressive_call_results: true,
-         registration_revocation: true
-      }
-   },
-   publisher: {
-      features: {
-         publisher_identification: true,
-         subscriber_blackwhite_listing: true,
-         publisher_exclusion: true
-      }
-   },
-   subscriber: {
-      features: {
-         publisher_identification: true,
-         //publication_trustlevels: true,
-         pattern_based_subscription: true,
-         subscription_revocation: true
-         //event_history: true,
-      }
-   }
-};
+import WAMP_FEATURES from "./wamp_features";
 
 
 // generate a WAMP ID
