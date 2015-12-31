@@ -17,11 +17,14 @@
 var when = require('when');
 var when_fn = require("when/function");
 
-var log = require('./log.js');
-var util = require('./util.js');
+var log = require('../log.js');
+var util = require('../util.js');
 
 // IE fallback (http://afuchs.tumblr.com/post/23550124774/date-now-in-ie8)
 Date.now = Date.now || function() { return +new Date; };
+
+import Event from "./event";
+import Error from "./error";
 
 
 // WAMP "Advanced Profile" support in AutobahnJS per role
@@ -83,30 +86,10 @@ var Invocation = function (caller, progress, procedure) {
 };
 
 
-var Event = function (publication, publisher, topic) {
-
-   var self = this;
-
-   self.publication = publication;
-   self.publisher = publisher;
-   self.topic = topic;
-};
-
-
 var Result = function (args, kwargs) {
 
    var self = this;
 
-   self.args = args || [];
-   self.kwargs = kwargs || {};
-};
-
-
-var Error = function (error, args, kwargs) {
-
-   var self = this;
-
-   self.error = error;
    self.args = args || [];
    self.kwargs = kwargs || {};
 };
@@ -901,7 +884,7 @@ var Session = function (socket, defer, onchallenge) {
 
                when_fn.call(self._onchallenge, self, method, extra).then(
                   function (signature) {
-                     var msg = [MSG_TYPE.AUTHENTICATE, signature, {}];
+                     let msg = [MSG_TYPE.AUTHENTICATE, signature, {}];
                      self._send_wamp(msg);
                   },
                   function (err) {
@@ -915,7 +898,7 @@ var Session = function (socket, defer, onchallenge) {
             } else {
                log.debug("received WAMP challenge, but no onchallenge() handler set");
 
-               var msg = [MSG_TYPE.ABORT, {message: "sorry, I cannot authenticate (no onchallenge handler set)"}, "wamp.error.cannot_authenticate"];
+               let msg = [MSG_TYPE.ABORT, {message: "sorry, I cannot authenticate (no onchallenge handler set)"}, "wamp.error.cannot_authenticate"];
                self._send_wamp(msg);
                self._socket.close(1000);
             }
@@ -1117,7 +1100,7 @@ Session.prototype.join = function (realm, authmethods, authid) {
    self._goodbye_sent = false;
    self._realm = realm;
 
-   var details = {};
+   var details: any = {};
    details.roles = WAMP_FEATURES;
 
    if (authmethods) {
@@ -1147,7 +1130,7 @@ Session.prototype.leave = function (reason, message) {
       reason = "wamp.close.normal";
    }
 
-   var details = {};
+   var details: any = {};
    if (message) {
       details.message = message;
    }
@@ -1287,7 +1270,7 @@ Session.prototype.subscribe = function (topic, handler, options) {
 
    // construct SUBSCRIBE message
    //
-   var msg = [MSG_TYPE.SUBSCRIBE, request];
+   var msg: Array<any> = [MSG_TYPE.SUBSCRIBE, request];
    if (options) {
       msg.push(options);
    } else {
@@ -1328,7 +1311,7 @@ Session.prototype.register = function (procedure, endpoint, options) {
 
    // construct REGISTER message
    //
-   var msg = [MSG_TYPE.REGISTER, request];
+   var msg: any = [MSG_TYPE.REGISTER, request];
    if (options) {
       msg.push(options);
    } else {

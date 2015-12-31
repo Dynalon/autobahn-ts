@@ -29,7 +29,7 @@ if ('AUTOBAHN_DEBUG' in global && AUTOBAHN_DEBUG) {
 
 var util = require('./util.js');
 var log = require('./log.js');
-var session = require('./session.js');
+var session = require('./session/session.js');
 var connection = require('./connection.js');
 var configure = require('./configure.js');
 

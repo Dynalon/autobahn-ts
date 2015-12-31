@@ -1,6 +1,7 @@
 {
   "files": [
     "lib/autobahn.ts",
+    "lib/session/session.ts",
     "lib/compat.d.ts",
     "typings/main.d.ts"
   ],

@@ -13,7 +13,7 @@
 
 var when = require('when');
 
-var session = require('./session.js');
+var session = require('./session/session.js');
 var util = require('./util.js');
 var log = require('./log.js');
 var autobahn = require('./autobahn.js');
