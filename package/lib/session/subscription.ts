@@ -12,13 +12,20 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 import {Deferred, Promise} from "when";
+import Event from "./event";
+import Session from "./sessionimpl";
 
-export default class Subscription {
+export interface SubscriptionHandler {
+    // TODO find out which args are optional
+    (args, kwargs, ed: Event): void;
+}
+
+export class Subscription {
 
     public topic: string;
-    public handler;
+    public handler: SubscriptionHandler;
     public options;
-    public session;
+    public session: Session;
     public id: number;
     public active: boolean = true;
 
@@ -33,7 +40,7 @@ export default class Subscription {
 
     public _on_unsubscribe: Deferred<any>;
 
-    constructor(topic, handler, options, session, id) {
+    constructor(topic: string, handler: SubscriptionHandler, options, session: Session, id: number) {
 
         this.topic = topic;
         this.handler = handler;

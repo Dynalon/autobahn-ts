@@ -19,7 +19,7 @@ import Error from "./error";
 import Invocation from "./invocation";
 import Result from "./result";
 import Publication from "./publication";
-import Subscription from "./subscription";
+import {Subscription} from "./subscription";
 import Registration from "./registration";
 import WAMP_FEATURES from "./wamp_features";
 import Session from "./sessionimpl"

@@ -29,7 +29,7 @@ import Error from "./error";
 import Invocation from "./invocation";
 import Result from "./result";
 import Publication from "./publication";
-import Subscription from "./subscription";
+import {Subscription, SubscriptionHandler} from "./subscription";
 import Registration from "./registration";
 import WAMP_FEATURES from "./wamp_features";
 
@@ -42,8 +42,7 @@ type SubscribeRequest = [
     Deferred<Subscription> & Promise<Subscription>,
     // topic
     string,
-    // handler
-    Function,
+    SubscriptionHandler,
     // options
     Object
 ];
@@ -104,7 +103,8 @@ class Session {
 
     // the Deferred factory to use
     // TODO don't use union type, don't use undefined object returns at all
-    private _defer: () => Promise<any> & Deferred<any>;
+    // TODO make private
+    public _defer: () => Promise<any> & Deferred<any>;
 
     // the WAMP authentication challenge handler
     private _onchallenge: Function;
@@ -150,7 +150,6 @@ class Session {
 
     private _MESSAGE_MAP = {};
 
-    private _process_EVENT: Function;
     private _process_REGISTERED: Function;
     private _process_REGISTER_ERROR: Function;
     private _process_UNREGISTERED: Function;
@@ -233,43 +232,6 @@ class Session {
         self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.UNSUBSCRIBE] = self._process_UNSUBSCRIBE_ERROR;
         self._MESSAGE_MAP[MSG_TYPE.PUBLISHED] = self._process_PUBLISHED;
         self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.PUBLISH] = self._process_PUBLISH_ERROR;
-
-
-        self._process_EVENT = function(msg) {
-            //
-            // process EVENT message
-            //
-            // [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id, Details|dict, PUBLISH.Arguments|list, PUBLISH.ArgumentsKw|dict]
-
-            var subscription = msg[1];
-
-            if (subscription in self._subscriptions) {
-
-                var publication = msg[2];
-                var details = msg[3];
-
-                var args = msg[4] || [];
-                var kwargs = msg[5] || {};
-
-                var subs = self._subscriptions[subscription];
-
-                // we want to provide the subscription topic to the handler, and may need to get this
-                // from one of the subscription handler objects attached to the subscription
-                // since for non-pattern subscriptions this is not sent over the wire
-                var ed = new Event(publication, details.publisher, details.topic || subs[0].topic);
-
-                for (var i = 0; i < subs.length; ++i) {
-                    try {
-                        subs[i].handler(args, kwargs, ed);
-                    } catch (e) {
-                        log.debug("Exception raised in event handler", e);
-                    }
-                }
-
-            } else {
-                self._protocol_violation("EVENT received for non-subscribed subscription ID " + subscription);
-            }
-        };
         self._MESSAGE_MAP[MSG_TYPE.EVENT] = self._process_EVENT;
 
 
@@ -969,6 +931,40 @@ class Session {
         }
     }
 
+    // TODO create dedicated type for msg and details
+    private _process_EVENT = (msg: [any, number, number, any, Array<any>, Object]) => {
+        //
+        // process EVENT message
+        //
+        // [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id, Details|dict, PUBLISH.Arguments|list, PUBLISH.ArgumentsKw|dict]
+
+        var [unused1, subscription, publication, details, args, kwargs] = msg;
+
+        args = args || [];
+        kwargs = kwargs || {};
+
+        if (subscription in this._subscriptions) {
+
+            var subs = this._subscriptions[subscription];
+
+            // we want to provide the subscription topic to the handler, and may need to get this
+            // from one of the subscription handler objects attached to the subscription
+            // since for non-pattern subscriptions this is not sent over the wire
+            var ed = new Event(publication, details.publisher, details.topic || subs[0].topic);
+
+            for (let sub of subs) {
+                try {
+                    sub.handler(args, kwargs, ed);
+                } catch (e) {
+                    log.debug("Exception raised in event handler", e);
+                }
+            }
+
+        } else {
+            this._protocol_violation("EVENT received for non-subscribed subscription ID " + subscription);
+        }
+    }
+
     log() {
         var self = this;
 
@@ -1171,7 +1167,7 @@ class Session {
     }
 
 
-    subscribe(topic: string, handler: Function, options?: Object): Promise<any> {
+    subscribe(topic: string, handler: SubscriptionHandler, options?: Object): Promise<any> {
 
         util.assert(typeof topic === 'string', "Session.subscribe: <topic> must be a string");
         util.assert(typeof handler === 'function', "Session.subscribe: <handler> must be a function");

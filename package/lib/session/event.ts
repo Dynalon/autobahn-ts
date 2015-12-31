@@ -13,11 +13,11 @@
 
 export default class Event {
 
-    public publication;
-    public publisher;
+    public publication: number;
+    public publisher: number;
     public topic: string;
 
-    constructor(publication, publisher, topic: string) {
+    constructor(publication: number, publisher: number, topic: string) {
         this.publication = publication;
         this.publisher = publisher;
         this.topic = topic;
