@@ -23,7 +23,8 @@ export default class Registration {
     public active: boolean = true;
 
     public on_unregister: Promise<any>;
-    private _on_unregister: Deferred<any>;
+    // TODO make private
+    public _on_unregister: Deferred<any>;
 
     constructor(procedure, endpoint, options, session, id) {
 

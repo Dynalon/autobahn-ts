@@ -69,6 +69,12 @@ type RegisterRequest = [
     Object
 ];
 
+type CallRequest = [
+    Deferred<Result> & Promise<Result>,
+    // options
+    any
+];
+
 // generate a WAMP ID
 //
 function newid() {
@@ -139,7 +145,7 @@ class Session {
     private _subscribe_reqs: NumberedHashtable<SubscribeRequest> = {};
     private _unsubscribe_reqs: NumberedHashtable<UnsubscribeRequest> = {};
 
-    private _call_reqs = {};
+    private _call_reqs: NumberedHashtable<CallRequest> = {};
     private _register_reqs: NumberedHashtable<RegisterRequest> = {};
     private _unregister_reqs = {};
 
@@ -147,7 +153,7 @@ class Session {
     private _subscriptions: NumberedHashtable<Array<Subscription>> = {};
 
     // registrations in place;
-    private _registrations = {};
+    private _registrations: NumberedHashtable<Registration> = {};
 
     // incoming invocations;
     private _invocations = {};
@@ -161,10 +167,6 @@ class Session {
 
     private _MESSAGE_MAP = {};
 
-    private _process_UNREGISTERED: Function;
-    private _process_RESULT: Function;
-    private _process_UNREGISTER_ERROR: Function;
-    private _process_CALL_ERROR: Function;
     private _process_INVOCATION: Function;
 
     // only used for performance measurement
@@ -243,151 +245,10 @@ class Session {
         self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.PUBLISH] = self._process_PUBLISH_ERROR;
         self._MESSAGE_MAP[MSG_TYPE.EVENT] = self._process_EVENT;
         self._MESSAGE_MAP[MSG_TYPE.REGISTERED] = self._process_REGISTERED;
-
         self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.REGISTER] = self._process_REGISTER_ERROR;
-
-
-        self._process_UNREGISTERED = function(msg) {
-            //
-            // process UNREGISTERED reply to UNREGISTER
-            //
-            var request = msg[1];
-
-            if (request in self._unregister_reqs) {
-
-                var r = self._unregister_reqs[request];
-
-                var d = r[0];
-                var registration = r[1];
-
-                if (registration.id in self._registrations) {
-                    delete self._registrations[registration.id];
-                }
-
-                registration.active = false;
-                d.resolve();
-
-                delete self._unregister_reqs[request];
-
-            } else {
-
-                if (request === 0) {
-
-                    // the router actively revoked our registration
-                    //
-                    var details = msg[2];
-                    var registration_id = details.registration;
-                    var reason = details.reason;
-
-                    if (registration_id in self._registrations) {
-                        var registration = self._registrations[registration_id];
-                        registration.active = false;
-                        registration._on_unregister.resolve(reason);
-                        delete self._registrations[registration_id];
-                    } else {
-                        self._protocol_violation("non-voluntary UNREGISTERED received for non-existing registration ID " + registration_id);
-                    }
-
-                } else {
-                    self._protocol_violation("UNREGISTERED received for non-pending request ID " + request);
-                }
-            }
-        };
         self._MESSAGE_MAP[MSG_TYPE.UNREGISTERED] = self._process_UNREGISTERED;
-
-
-        self._process_UNREGISTER_ERROR = function(msg) {
-            //
-            // process ERROR reply to UNREGISTER
-            //
-            var request = msg[2];
-            if (request in self._unregister_reqs) {
-
-                var details = msg[3];
-                var error = new Error(msg[4], msg[5], msg[6]);
-
-                var r = self._unregister_reqs[request];
-
-                var d = r[0];
-                var registration = r[1];
-
-                d.reject(error);
-
-                delete self._unregister_reqs[request];
-
-            } else {
-                self._protocol_violation("UNREGISTER-ERROR received for non-pending request ID " + request);
-            }
-        };
         self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.UNREGISTER] = self._process_UNREGISTER_ERROR;
-
-
-        self._process_RESULT = function(msg) {
-            //
-            // process RESULT reply to CALL
-            //
-            var request = msg[1];
-            if (request in self._call_reqs) {
-
-                var details = msg[2];
-
-                var args = msg[3] || [];
-                var kwargs = msg[4] || {};
-
-                // maybe wrap complex result:
-                var result = null;
-                if (args.length > 1 || Object.keys(kwargs).length > 0) {
-                    // wrap complex result is more than 1 positional result OR
-                    // non-empty keyword result
-                    result = new Result(args, kwargs);
-                } else if (args.length > 0) {
-                    // single positional result
-                    result = args[0];
-                }
-
-                var r = self._call_reqs[request];
-
-                var d = r[0];
-                var options = r[1];
-
-                if (details.progress) {
-                    if (options && options.receive_progress) {
-                        d.notify(result);
-                    }
-                } else {
-                    d.resolve(result);
-                    delete self._call_reqs[request];
-                }
-            } else {
-                self._protocol_violation("CALL-RESULT received for non-pending request ID " + request);
-            }
-        };
         self._MESSAGE_MAP[MSG_TYPE.RESULT] = self._process_RESULT;
-
-
-        self._process_CALL_ERROR = function(msg) {
-            //
-            // process ERROR reply to CALL
-            //
-            var request = msg[2];
-            if (request in self._call_reqs) {
-
-                var details = msg[3];
-                var error = new Error(msg[4], msg[5], msg[6]);
-
-                var r = self._call_reqs[request];
-
-                var d = r[0];
-                var options = r[1];
-
-                d.reject(error);
-
-                delete self._call_reqs[request];
-
-            } else {
-                self._protocol_violation("CALL-ERROR received for non-pending request ID " + request);
-            }
-        };
         self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.CALL] = self._process_CALL_ERROR;
 
 
@@ -1010,7 +871,134 @@ class Session {
         } else {
             this._protocol_violation("REGISTER-ERROR received for non-pending request ID " + request);
         }
-    };
+    }
+
+    /**
+     *
+     * When the unregistration request fails, the _Dealer_ sends an "ERROR"
+     * message:
+     *
+     * [ERROR, UNREGISTER, UNREGISTER.Request|id, Details|dict,
+     *     Error|uri]
+     *
+     * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-9.1.5
+     */
+    // TODO type information for details
+    private _process_UNREGISTERED = (msg: [any, number, /*details*/ any, string]) => {
+        let [, request, details, ,] = msg;
+
+        if (request in this._unregister_reqs) {
+
+            let [d, registration] = this._unregister_reqs[request];
+
+            if (registration.id in this._registrations) {
+                delete this._registrations[registration.id];
+            }
+
+            registration.active = false;
+            d.resolve();
+
+            delete this._unregister_reqs[request];
+
+        } else {
+
+            if (request === 0) {
+
+                // the router actively revoked our registration
+                //
+                let registration_id = details.registration;
+                let reason = details.reason;
+
+                if (registration_id in this._registrations) {
+                    let registration = this._registrations[registration_id];
+                    registration.active = false;
+                    registration._on_unregister.resolve(reason);
+                    delete this._registrations[registration_id];
+                } else {
+                    this._protocol_violation("non-voluntary UNREGISTERED received for non-existing registration ID " + registration_id);
+                }
+
+            } else {
+                this._protocol_violation("UNREGISTERED received for non-pending request ID " + request);
+            }
+        }
+    }
+
+    /**
+     * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-9.1.6
+     */
+    private _process_UNREGISTER_ERROR = (msg: [any, any, number, any, string, Array<any>, any]) => {
+        let [, , request, details, error, args, kwargs] = msg;
+        if (request in this._unregister_reqs) {
+
+            let err = new Error(error, args, kwargs);
+            let [d, registration] = this._unregister_reqs[request];
+
+            d.reject(err);
+
+            delete this._unregister_reqs[request];
+
+        } else {
+            this._protocol_violation("UNREGISTER-ERROR received for non-pending request ID " + request);
+        }
+    }
+
+    /**
+     * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-9.2.4
+     */
+    private _process_RESULT = (msg: [any, number, any, Array<any>, any]) => {
+        let [, request, details, args, kwargs] = msg;
+        args = args || [];
+        kwargs = kwargs || {};
+
+        if (request in this._call_reqs) {
+
+            // maybe wrap complex result:
+            let result = null;
+            if (args.length > 1 || Object.keys(kwargs).length > 0) {
+                // wrap complex result is more than 1 positional result OR
+                // non-empty keyword result
+                result = new Result(args, kwargs);
+            } else if (args.length > 0) {
+                // single positional result
+                result = args[0];
+            }
+
+            let [d, options] = this._call_reqs[request];
+
+            if (details.progress) {
+                if (options && options.receive_progress) {
+                    d.notify(result);
+                }
+            } else {
+                d.resolve(result);
+                delete this._call_reqs[request];
+            }
+        } else {
+            this._protocol_violation("CALL-RESULT received for non-pending request ID " + request);
+        }
+    }
+
+    /**
+     * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-9.2.6
+     *
+     *  [ERROR, CALL, CALL.Request|id, Details|dict, Error|uri, Arguments|list, ArgumentsKw|dict]
+     */
+    private _process_CALL_ERROR = (msg: [any, any, number, any, string, Array<any>, any]) => {
+        let [,, request, details, error, args, kwargs] = msg;
+        if (request in this._call_reqs) {
+
+            let err = new Error(error, args, kwargs);
+            let [d, options] = this._call_reqs[request];
+
+            d.reject(err);
+
+            delete this._call_reqs[request];
+
+        } else {
+            this._protocol_violation("CALL-ERROR received for non-pending request ID " + request);
+        }
+    }
 
     log() {
         var self = this;
