@@ -12,6 +12,30 @@ type MsgId = number;
  */
 type Dict = any;
 
+export type WELCOME = [
+    MsgId,
+    Id,
+    any
+];
+
+export type ABORT = [
+    MsgId,
+    Dict,
+    Uri
+];
+
+export type GOODBYE = [
+    MsgId,
+    Dict,
+    Uri
+];
+
+export type CHALLENGE = [
+    MsgId,
+    string,
+    Dict
+]
+
 /**
  * [SUBSCRIBED, SUBSCRIBE.Request | id, Subscription | id]
  */

@@ -116,60 +116,6 @@ export default class Session {
     public onjoin: Function;
     public onleave: Function;
 
-    // the transport connection (WebSocket object)
-    private _socket;
-
-    // the Deferred factory to use
-    // TODO don't use union type, don't use undefined object returns at all
-    // TODO make private
-    public _defer: () => Promise<any> & Deferred<any>;
-
-    // the WAMP authentication challenge handler
-    private _onchallenge: Function;
-
-    // the WAMP session ID
-    private _id = null;
-
-    // the WAMP realm joined
-    private _realm = null;
-
-    // the WAMP features in use
-    private _features = null;
-
-    // closing state
-    private _goodbye_sent = false;
-    private _transport_is_closing = false;
-
-    // outstanding requests;
-    private _publish_reqs: NumberedHashtable<PublishRequest> = {};
-
-    private _subscribe_reqs: NumberedHashtable<SubscribeRequest> = {};
-    private _unsubscribe_reqs: NumberedHashtable<UnsubscribeRequest> = {};
-
-    private _call_reqs: NumberedHashtable<CallRequest> = {};
-    private _register_reqs: NumberedHashtable<RegisterRequest> = {};
-    private _unregister_reqs = {};
-
-    // subscriptions in place;
-    private _subscriptions: NumberedHashtable<Array<Subscription>> = {};
-
-    // registrations in place;
-    private _registrations: NumberedHashtable<Registration> = {};
-
-    // incoming invocations;
-    private _invocations = {};
-
-    // prefix shortcuts for URIs
-    private _prefixes = {};
-
-    // the defaults for 'disclose_me'
-    private _caller_disclose_me = false;
-    private _publisher_disclose_me = false;
-
-    private _MESSAGE_MAP = {};
-
-    // only used for performance measurement
-    private _created;
 
     public get defer() {
         return this._defer;
@@ -225,6 +171,61 @@ export default class Session {
         return vals;
     }
 
+    // the transport connection (WebSocket object)
+    private _socket;
+
+    // the Deferred factory to use
+    // TODO don't use union type, don't use undefined object returns at all
+    // TODO make private
+    public _defer: () => Promise<any> & Deferred<any>;
+
+    // the WAMP authentication challenge handler
+    private _onchallenge: Function;
+
+    // the WAMP session ID
+    private _id = null;
+
+    // the WAMP realm joined
+    private _realm = null;
+
+    // the WAMP features in use
+    private _features = null;
+
+    // closing state
+    private _goodbye_sent = false;
+    private _transport_is_closing = false;
+
+    // outstanding requests;
+    private _publish_reqs: NumberedHashtable<PublishRequest> = {};
+
+    private _subscribe_reqs: NumberedHashtable<SubscribeRequest> = {};
+    private _unsubscribe_reqs: NumberedHashtable<UnsubscribeRequest> = {};
+
+    private _call_reqs: NumberedHashtable<CallRequest> = {};
+    private _register_reqs: NumberedHashtable<RegisterRequest> = {};
+    private _unregister_reqs = {};
+
+    // subscriptions in place;
+    private _subscriptions: NumberedHashtable<Array<Subscription>> = {};
+
+    // registrations in place;
+    private _registrations: NumberedHashtable<Registration> = {};
+
+    // incoming invocations;
+    private _invocations = {};
+
+    // prefix shortcuts for URIs
+    private _prefixes = {};
+
+    // the defaults for 'disclose_me'
+    private _caller_disclose_me = false;
+    private _publisher_disclose_me = false;
+
+    private _MESSAGE_MAP = {};
+
+    // only used for performance measurement
+    private _created;
+
     constructor(socket, defer, onchallenge: Function) {
 
         var self = this;
@@ -254,7 +255,7 @@ export default class Session {
 
         // callback fired by WAMP transport on receiving a WAMP message
         //
-        self._socket.onmessage = function(msg) {
+        self._socket.onmessage = (msg) => {
 
             var msg_type = msg[0];
 
@@ -270,48 +271,9 @@ export default class Session {
 
                     // determine actual set of advanced features that can be used
                     //
-                    var rf = msg[2];
-                    self._features = {};
+                    let rf = msg[2];
+                    this._detect_features(rf);
 
-                    if (rf.roles.broker) {
-                        // "Basic Profile" is mandatory
-                        self._features.subscriber = {};
-                        self._features.publisher = {};
-
-                        // fill in features that both peers support
-                        if (rf.roles.broker.features) {
-
-                            for (var att in WAMP_FEATURES.publisher.features) {
-                                self._features.publisher[att] = WAMP_FEATURES.publisher.features[att] &&
-                                    rf.roles.broker.features[att];
-                            }
-
-                            for (var att in WAMP_FEATURES.subscriber.features) {
-                                self._features.subscriber[att] = WAMP_FEATURES.subscriber.features[att] &&
-                                    rf.roles.broker.features[att];
-                            }
-                        }
-                    }
-
-                    if (rf.roles.dealer) {
-                        // "Basic Profile" is mandatory
-                        self._features.caller = {};
-                        self._features.callee = {};
-
-                        // fill in features that both peers support
-                        if (rf.roles.dealer.features) {
-
-                            for (var att in WAMP_FEATURES.caller.features) {
-                                self._features.caller[att] = WAMP_FEATURES.caller.features[att] &&
-                                    rf.roles.dealer.features[att];
-                            }
-
-                            for (var att in WAMP_FEATURES.callee.features) {
-                                self._features.callee[att] = WAMP_FEATURES.callee.features[att] &&
-                                    rf.roles.dealer.features[att];
-                            }
-                        }
-                    }
 
                     if (self.onjoin) {
                         self.onjoin(msg[2]);
@@ -419,6 +381,49 @@ export default class Session {
         }
     };
 
+    private _detect_features(rf) {
+        this._features = {};
+
+        if (rf.roles.broker) {
+            // "Basic Profile" is mandatory
+            this._features.subscriber = {};
+            this._features.publisher = {};
+
+            // fill in features that both peers support
+            if (rf.roles.broker.features) {
+
+                for (var att in WAMP_FEATURES.publisher.features) {
+                    this._features.publisher[att] = WAMP_FEATURES.publisher.features[att] &&
+                        rf.roles.broker.features[att];
+                }
+
+                for (var att in WAMP_FEATURES.subscriber.features) {
+                    this._features.subscriber[att] = WAMP_FEATURES.subscriber.features[att] &&
+                        rf.roles.broker.features[att];
+                }
+            }
+        }
+
+        if (rf.roles.dealer) {
+            // "Basic Profile" is mandatory
+            this._features.caller = {};
+            this._features.callee = {};
+
+            // fill in features that both peers support
+            if (rf.roles.dealer.features) {
+
+                for (var att in WAMP_FEATURES.caller.features) {
+                    this._features.caller[att] = WAMP_FEATURES.caller.features[att] &&
+                        rf.roles.dealer.features[att];
+                }
+
+                for (var att in WAMP_FEATURES.callee.features) {
+                    this._features.callee[att] = WAMP_FEATURES.callee.features[att] &&
+                        rf.roles.dealer.features[att];
+                }
+            }
+        }
+    }
 
     private _protocol_violation = function(reason: string) {
         log.debug("failing transport due to protocol violation: " + reason);
