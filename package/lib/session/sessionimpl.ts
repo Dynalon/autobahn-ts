@@ -167,8 +167,6 @@ class Session {
 
     private _MESSAGE_MAP = {};
 
-    private _process_INVOCATION: Function;
-
     // only used for performance measurement
     private _created;
 
@@ -250,115 +248,6 @@ class Session {
         self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.UNREGISTER] = self._process_UNREGISTER_ERROR;
         self._MESSAGE_MAP[MSG_TYPE.RESULT] = self._process_RESULT;
         self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.CALL] = self._process_CALL_ERROR;
-
-
-        self._process_INVOCATION = function(msg) {
-            //
-            // process INVOCATION message
-            //
-            // [INVOCATION, Request|id, REGISTERED.Registration|id, Details|dict, CALL.Arguments|list, CALL.ArgumentsKw|dict]
-            //
-            var request = msg[1];
-            var registration = msg[2];
-
-            var details = msg[3];
-            // receive_progress
-            // timeout
-            // caller
-
-            if (registration in self._registrations) {
-
-                var endpoint = self._registrations[registration].endpoint;
-
-                var args = msg[4] || [];
-                var kwargs = msg[5] || {};
-
-                // create progress function for invocation
-                //
-                var progress = null;
-                if (details.receive_progress) {
-
-                    progress = function(args, kwargs) {
-                        var progress_msg = [MSG_TYPE.YIELD, request, { progress: true }];
-
-                        args = args || [];
-                        kwargs = kwargs || {};
-
-                        var kwargs_len = Object.keys(kwargs).length;
-                        if (args.length || kwargs_len) {
-                            progress_msg.push(args);
-                            if (kwargs_len) {
-                                progress_msg.push(kwargs);
-                            }
-                        }
-                        self._send_wamp(progress_msg);
-                    }
-                };
-
-                var cd = new Invocation(details.caller, progress, details.procedure);
-
-                // We use the following whenjs call wrapper, which automatically
-                // wraps a plain, non-promise value in a (immediately resolved) promise
-                //
-                // See: https://github.com/cujojs/when/blob/master/docs/api.md#fncall
-                //
-                when_fn.call(endpoint, args, kwargs, cd).then(
-
-                    function(res) {
-                        // construct YIELD message
-                        // FIXME: Options
-                        //
-                        var reply = [MSG_TYPE.YIELD, request, {}];
-
-                        if (res instanceof Result) {
-                            var kwargs_len = Object.keys(res.kwargs).length;
-                            if (res.args.length || kwargs_len) {
-                                reply.push(res.args);
-                                if (kwargs_len) {
-                                    reply.push(res.kwargs);
-                                }
-                            }
-                        } else {
-                            reply.push([res]);
-                        }
-
-                        // send WAMP message
-                        //
-                        self._send_wamp(reply);
-                    },
-
-                    function(err) {
-                        // construct ERROR message
-                        // [ERROR, REQUEST.Type|int, REQUEST.Request|id, Details|dict, Error|uri, Arguments|list, ArgumentsKw|dict]
-
-                        var reply = [MSG_TYPE.ERROR, MSG_TYPE.INVOCATION, request, {}];
-
-                        if (err instanceof Error) {
-
-                            reply.push(err.error);
-
-                            var kwargs_len = Object.keys(err.kwargs).length;
-                            if (err.args.length || kwargs_len) {
-                                reply.push(err.args);
-                                if (kwargs_len) {
-                                    reply.push(err.kwargs);
-                                }
-                            }
-                        } else {
-                            reply.push('wamp.error.runtime_error');
-                            reply.push([err]);
-                        }
-
-                        // send WAMP message
-                        //
-                        self._send_wamp(reply);
-                    }
-                );
-
-            } else {
-                self._protocol_violation("INVOCATION received for non-registered registration ID " + request);
-            }
-        };
         self._MESSAGE_MAP[MSG_TYPE.INVOCATION] = self._process_INVOCATION;
 
 
@@ -999,6 +888,112 @@ class Session {
             this._protocol_violation("CALL-ERROR received for non-pending request ID " + request);
         }
     }
+
+    /**
+     * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-9.2.2
+     *     [INVOCATION, Request|id, REGISTERED.Registration|id, Details|dict,
+     *         CALL.Arguments|list, CALL.ArgumentsKw|dict]
+     */
+    private _process_INVOCATION = (msg: [any, number, number, any, Array<any>, any]) => {
+        let [, request, registration, details, args, kwargs] = msg;
+
+        // receive_progress
+        // timeout
+        // caller
+
+        if (registration in this._registrations) {
+
+            args = args || [];
+            kwargs = kwargs || {};
+
+            let endpoint = this._registrations[registration].endpoint;
+
+            // create progress function for invocation
+            //
+            let progress = null;
+            if (details.receive_progress) {
+
+                progress = (args, kwargs) => {
+                    var progress_msg = [MSG_TYPE.YIELD, request, { progress: true }];
+
+                    args = args || [];
+                    kwargs = kwargs || {};
+
+                    var kwargs_len = Object.keys(kwargs).length;
+                    if (args.length || kwargs_len) {
+                        progress_msg.push(args);
+                        if (kwargs_len) {
+                            progress_msg.push(kwargs);
+                        }
+                    }
+                    this._send_wamp(progress_msg);
+                }
+            };
+
+            let cd = new Invocation(details.caller, progress, details.procedure);
+
+            // We use the following whenjs call wrapper, which automatically
+            // wraps a plain, non-promise value in a (immediately resolved) promise
+            //
+            // See: https://github.com/cujojs/when/blob/master/docs/api.md#fncall
+            //
+            when_fn.call(endpoint, args, kwargs, cd).then(
+
+                (res) => {
+                    // construct YIELD message
+                    // FIXME: Options
+                    //
+                    var reply = [MSG_TYPE.YIELD, request, {}];
+
+                    if (res instanceof Result) {
+                        var kwargs_len = Object.keys(res.kwargs).length;
+                        if (res.args.length || kwargs_len) {
+                            reply.push(res.args);
+                            if (kwargs_len) {
+                                reply.push(res.kwargs);
+                            }
+                        }
+                    } else {
+                        reply.push([res]);
+                    }
+
+                    // send WAMP message
+                    //
+                    this._send_wamp(reply);
+                },
+
+                (err) => {
+                    // construct ERROR message
+                    // [ERROR, REQUEST.Type|int, REQUEST.Request|id, Details|dict, Error|uri, Arguments|list, ArgumentsKw|dict]
+
+                    let reply = [MSG_TYPE.ERROR, MSG_TYPE.INVOCATION, request, {}];
+
+                    if (err instanceof Error) {
+
+                        reply.push(err.error);
+
+                        var kwargs_len = Object.keys(err.kwargs).length;
+                        if (err.args.length || kwargs_len) {
+                            reply.push(err.args);
+                            if (kwargs_len) {
+                                reply.push(err.kwargs);
+                            }
+                        }
+                    } else {
+                        reply.push('wamp.error.runtime_error');
+                        reply.push([err]);
+                    }
+
+                    // send WAMP message
+                    //
+                    this._send_wamp(reply);
+                }
+            );
+
+        } else {
+            this._protocol_violation("INVOCATION received for non-registered registration ID " + request);
+        }
+    };
 
     log() {
         var self = this;
