@@ -32,6 +32,7 @@ import Publication from "./publication";
 import {Subscription, SubscriptionHandler} from "./subscription";
 import Registration from "./registration";
 import WAMP_FEATURES from "./wamp_features";
+import * as MsgType from "./messagetypes";
 
 interface NumberedHashtable<T> {
     [id: number]: T;
@@ -110,7 +111,7 @@ var MSG_TYPE = {
     YIELD: 70
 };
 
-class Session {
+export default class Session {
 
     public onjoin: Function;
     public onleave: Function;
@@ -443,12 +444,11 @@ class Session {
      * OPENQUESTION: Can the promise be rejected from anywhere if no answer arrives?
      *
     */
-    private _process_SUBSCRIBED = (msg: [number, number, number]) => {
+    private _process_SUBSCRIBED = (msg: MsgType.SUBSCRIBED) => {
         //
         // process SUBSCRIBED reply to SUBSCRIBE
         //
-        var request: number = msg[1];
-        var subscription: number = msg[2];
+        let [, request, subscription] = msg;
 
         if (request in this._subscribe_reqs) {
 
@@ -481,12 +481,11 @@ class Session {
      *     But why do we have an array of length 7 here as msg argument?
      *
      */
-    private _process_SUBSCRIBE_ERROR = (msg: Array<any>) => {
+    private _process_SUBSCRIBE_ERROR = (msg: MsgType.SUBSCRIBE_ERROR) => {
 
-        var request: number = msg[2];
+        var [unused1, unused2, request, details, error, args, kwargs] = msg;
         if (request in this._subscribe_reqs) {
 
-            var [, , , details, error, args, kwargs] = msg;
             var err = new Error(error, args, kwargs);
 
             var [d, ] = this._subscribe_reqs[request];
@@ -508,15 +507,12 @@ class Session {
      * OPENQUESTION: Why does the IETF draft say msg has length of 2, and we use it here with
      *     length of 5?
      */
-    private _process_UNSUBSCRIBED = (msg) => {
-        var request: number = msg[1];
+    private _process_UNSUBSCRIBED = (msg: MsgType.UNSUBSCRIBED) => {
+        let [unused1, request, details] = msg;
 
         if (request in this._unsubscribe_reqs) {
 
-            var r = this._unsubscribe_reqs[request];
-
-            var d = r[0];
-            var subscription_id: number = r[1];
+            var [d, subscription_id] = this._unsubscribe_reqs[request];
 
             if (subscription_id in this._subscriptions) {
                 let subs = this._subscriptions[subscription_id];
@@ -536,16 +532,11 @@ class Session {
         } else {
 
             if (request === 0) {
+                // UNSPECIFIED SPECVIOLATION
+                // this is currently not documented in the SPEC 02
 
                 // router actively revoked our subscription
                 //
-
-                // TODO added assertion statement as I am not sure if this is correct code;
-                // need to verify that "details" is of correct type, and subscription_id will
-                // be of type number for sure; however this code is currently hard to trigger
-                util.assert(msg[2] && typeof msg[2].subscription === 'number');
-
-                var details = msg[2];
                 var subscription_id: number = details.subscription;
                 var reason = details.reason;
 
@@ -569,7 +560,7 @@ class Session {
     /**
      * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-8.1.6
      */
-    private _process_UNSUBSCRIBE_ERROR = (msg: Array<any>) => {
+    private _process_UNSUBSCRIBE_ERROR = (msg: MsgType.UNSUBSCRIBE_ERROR) => {
         //
         // process ERROR reply to UNSUBSCRIBE
         //
@@ -598,7 +589,7 @@ class Session {
      *
      * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-8.2.2
      */
-    private _process_PUBLISHED = (msg: [any, number, number]) => {
+    private _process_PUBLISHED = (msg: MsgType.PUBLISHED) => {
         //
         // process PUBLISHED reply to PUBLISH
         //
@@ -626,23 +617,13 @@ class Session {
      *
      * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-8.2.3
      */
-    // TODO better type information for msg here
-    private _process_PUBLISH_ERROR = (msg: Array<any>) => {
-        //
-        // process ERROR reply to PUBLISH
-        //
-        var request: number = msg[2];
-        util.assert(typeof request === 'number', "FIXME: request was not a number");
+    private _process_PUBLISH_ERROR = (msg: MsgType.PUBLISH_ERROR) => {
+        let [unused1, unused2, request, details, error, args, kwargs] = msg;
 
         if (request in this._publish_reqs) {
 
-            var details = msg[3];
-            var error = new Error(msg[4], msg[5], msg[6]);
-
-            var r = this._publish_reqs[request];
-
-            var d = r[0];
-            var options = r[1];
+            let err = new Error(error, args, kwargs);
+            let [d, options] = this._publish_reqs[request];
 
             d.reject(error);
 
@@ -659,13 +640,11 @@ class Session {
      * _Subscribers_ for the topic published to and, possibly, other
      * information in the event.
      *
+     * [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id, Details|dict, PUBLISH.Arguments|list, PUBLISH.ArgumentsKw|dict]
+     *
      * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-8.2.4
      */
-    private _process_EVENT = (msg: [any, number, number, any, Array<any>, Object]) => {
-        //
-        // process EVENT message
-        //
-        // [EVENT, SUBSCRIBED.Subscription|id, PUBLISHED.Publication|id, Details|dict, PUBLISH.Arguments|list, PUBLISH.ArgumentsKw|dict]
+    private _process_EVENT = (msg: MsgType.EVENT) => {
 
         var [unused1, subscription, publication, details, args, kwargs] = msg;
 
@@ -702,7 +681,7 @@ class Session {
      *
      * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-9.1.2
      */
-    private _process_REGISTERED = (msg: [any, number, number]) => {
+    private _process_REGISTERED = (msg: MsgType.REGISTERED) => {
         var [, request, registration] = msg;
 
         if (request in this._register_reqs) {
@@ -745,7 +724,7 @@ class Session {
      *
      * OPENQUESTION: Why is msg of length 7 in contrast to the spec?
      */
-    private _process_REGISTER_ERROR = (msg: [any, any, number, Object, string, any, any]) => {
+    private _process_REGISTER_ERROR = (msg: MsgType.REGISTER_ERROR) => {
         var [, , request, details, error, args, kwargs] = msg;
 
         if (request in this._register_reqs) {
@@ -772,8 +751,7 @@ class Session {
      *
      * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-9.1.5
      */
-    // TODO type information for details
-    private _process_UNREGISTERED = (msg: [any, number, /*details*/ any, string]) => {
+    private _process_UNREGISTERED = (msg: MsgType.UNREGISTERED) => {
         let [, request, details, ,] = msg;
 
         if (request in this._unregister_reqs) {
@@ -816,7 +794,7 @@ class Session {
     /**
      * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-9.1.6
      */
-    private _process_UNREGISTER_ERROR = (msg: [any, any, number, any, string, Array<any>, any]) => {
+    private _process_UNREGISTER_ERROR = (msg: MsgType.UNREGISTER_ERROR) => {
         let [, , request, details, error, args, kwargs] = msg;
         if (request in this._unregister_reqs) {
 
@@ -835,7 +813,7 @@ class Session {
     /**
      * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-9.2.4
      */
-    private _process_RESULT = (msg: [any, number, any, Array<any>, any]) => {
+    private _process_RESULT = (msg: MsgType.RESULT) => {
         let [, request, details, args, kwargs] = msg;
         args = args || [];
         kwargs = kwargs || {};
@@ -873,7 +851,7 @@ class Session {
      *
      *  [ERROR, CALL, CALL.Request|id, Details|dict, Error|uri, Arguments|list, ArgumentsKw|dict]
      */
-    private _process_CALL_ERROR = (msg: [any, any, number, any, string, Array<any>, any]) => {
+    private _process_CALL_ERROR = (msg: MsgType.CALL_ERROR) => {
         let [,, request, details, error, args, kwargs] = msg;
         if (request in this._call_reqs) {
 
@@ -894,7 +872,7 @@ class Session {
      *     [INVOCATION, Request|id, REGISTERED.Registration|id, Details|dict,
      *         CALL.Arguments|list, CALL.ArgumentsKw|dict]
      */
-    private _process_INVOCATION = (msg: [any, number, number, any, Array<any>, any]) => {
+    private _process_INVOCATION = (msg: MsgType.INVOCATION) => {
         let [, request, registration, details, args, kwargs] = msg;
 
         // receive_progress
@@ -1412,4 +1390,3 @@ class Session {
     }
 }
 
-export default Session;

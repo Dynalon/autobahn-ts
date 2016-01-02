@@ -13,11 +13,11 @@
 
 export default class Error {
 
-    public error;
+    public error: string;
     public args: Array<any>;
     public kwargs: Object;
 
-    constructor(error, args?: Array<any>, kwargs?: Object) {
+    constructor(error: string, args?: Array<any>, kwargs?: Object) {
         this.error = error;
         this.args = args || [];
         this.kwargs = kwargs || {};
