@@ -56,7 +56,18 @@ type PublishRequest = [
     Deferred<Publication> & Promise<Publication>,
     // options object
     Object
-]
+];
+
+// _register_reqs
+type RegisterRequest = [
+    Deferred<Registration> & Promise<Registration>,
+    // procedure name i.e. 'com.arguments.ping',
+    string,
+    // procedure handler
+    Function,
+    // options
+    Object
+];
 
 // generate a WAMP ID
 //
@@ -129,7 +140,7 @@ class Session {
     private _unsubscribe_reqs: NumberedHashtable<UnsubscribeRequest> = {};
 
     private _call_reqs = {};
-    private _register_reqs = {};
+    private _register_reqs: NumberedHashtable<RegisterRequest> = {};
     private _unregister_reqs = {};
 
     // subscriptions in place;
@@ -150,8 +161,6 @@ class Session {
 
     private _MESSAGE_MAP = {};
 
-    private _process_REGISTERED: Function;
-    private _process_REGISTER_ERROR: Function;
     private _process_UNREGISTERED: Function;
     private _process_RESULT: Function;
     private _process_UNREGISTER_ERROR: Function;
@@ -233,61 +242,8 @@ class Session {
         self._MESSAGE_MAP[MSG_TYPE.PUBLISHED] = self._process_PUBLISHED;
         self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.PUBLISH] = self._process_PUBLISH_ERROR;
         self._MESSAGE_MAP[MSG_TYPE.EVENT] = self._process_EVENT;
-
-
-        self._process_REGISTERED = function(msg) {
-            //
-            // process REGISTERED reply to REGISTER
-            //
-            var request = msg[1];
-            var registration = msg[2];
-
-            if (request in self._register_reqs) {
-
-                var r = self._register_reqs[request];
-
-                var d = r[0];
-                var procedure = r[1];
-                var endpoint = r[2];
-                var options = r[3];
-
-                var reg = new Registration(procedure, endpoint, options, self, registration);
-
-                self._registrations[registration] = reg;
-
-                d.resolve(reg);
-
-                delete self._register_reqs[request];
-
-            } else {
-                self._protocol_violation("REGISTERED received for non-pending request ID " + request);
-            }
-        };
         self._MESSAGE_MAP[MSG_TYPE.REGISTERED] = self._process_REGISTERED;
 
-
-        self._process_REGISTER_ERROR = function(msg) {
-            //
-            // process ERROR reply to REGISTER
-            //
-            var request = msg[2];
-            if (request in self._register_reqs) {
-
-                var details = msg[3];
-                var error = new Error(msg[4], msg[5], msg[6]);
-
-                var r = self._register_reqs[request];
-
-                var d = r[0];
-
-                d.reject(error);
-
-                delete self._register_reqs[request];
-
-            } else {
-                self._protocol_violation("REGISTER-ERROR received for non-pending request ID " + request);
-            }
-        };
         self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.REGISTER] = self._process_REGISTER_ERROR;
 
 
@@ -883,6 +839,15 @@ class Session {
         }
     }
 
+    /**
+     * If the _Broker_ is able to fulfill and allowing the publication, and
+     * "PUBLISH.Options.acknowledge == true", the _Broker_ replies by
+     * sending a "PUBLISHED" message to the _Publisher_:
+     *
+     * [PUBLISHED, PUBLISH.Request|id, Publication|id]
+     *
+     * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-8.2.2
+     */
     private _process_PUBLISHED = (msg: [any, number, number]) => {
         //
         // process PUBLISHED reply to PUBLISH
@@ -904,6 +869,13 @@ class Session {
     }
 
 
+    /**
+     * When the request for publication cannot be fulfilled by the _Broker_,
+     * and "PUBLISH.Options.acknowledge == true", the _Broker_ sends back an
+     * "ERROR" message to the _Publisher_
+     *
+     * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-8.2.3
+     */
     // TODO better type information for msg here
     private _process_PUBLISH_ERROR = (msg: Array<any>) => {
         //
@@ -931,7 +903,14 @@ class Session {
         }
     }
 
-    // TODO create dedicated type for msg and details
+    /**
+     * When a publication is successful and a _Broker_ dispatches the event,
+     * it determines a list of receivers for the event based on
+     * _Subscribers_ for the topic published to and, possibly, other
+     * information in the event.
+     *
+     * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-8.2.4
+     */
     private _process_EVENT = (msg: [any, number, number, any, Array<any>, Object]) => {
         //
         // process EVENT message
@@ -964,6 +943,74 @@ class Session {
             this._protocol_violation("EVENT received for non-subscribed subscription ID " + subscription);
         }
     }
+
+    /**
+     * If the _Dealer_ is able to fulfill and allowing the registration, it
+     * answers by sending a "REGISTERED" message to the "Callee"
+     *
+     *  [REGISTERED, REGISTER.Request|id, Registration|id]
+     *
+     * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-9.1.2
+     */
+    private _process_REGISTERED = (msg: [any, number, number]) => {
+        var [, request, registration] = msg;
+
+        if (request in this._register_reqs) {
+
+            var r = this._register_reqs[request];
+
+            var d = r[0];
+            var procedure = r[1];
+            var endpoint = r[2];
+            var options = r[3];
+
+            var reg = new Registration(procedure, endpoint, options, this, registration);
+
+            this._registrations[registration] = reg;
+
+            d.resolve(reg);
+
+            delete this._register_reqs[request];
+
+        } else {
+            this._protocol_violation("REGISTERED received for non-pending request ID " + request);
+        }
+    }
+
+    /**
+     *
+     * When the request for registration cannot be fulfilled by the
+     * _Dealer_, the _Dealer_ sends back an "ERROR" message to the _Callee_:
+     *
+     * [ERROR, REGISTER, REGISTER.Request|id, Details|dict, Error|uri]
+     *
+     * where
+     *
+     *  o  "REGISTER.Request" is the ID from the original request.
+     *
+     *  o  "Error" is an URI that gives the error of why the request could
+     *  not be fulfilled.
+     *
+     * @see https://tools.ietf.org/html/draft-oberstet-hybi-tavendo-wamp-02#section-9.1.3
+     *
+     * OPENQUESTION: Why is msg of length 7 in contrast to the spec?
+     */
+    private _process_REGISTER_ERROR = (msg: [any, any, number, Object, string, any, any]) => {
+        var [, , request, details, error, args, kwargs] = msg;
+
+        if (request in this._register_reqs) {
+
+            var err = new Error(error, args, kwargs);
+            var [d,] = this._register_reqs[request];
+
+            d.reject(err);
+
+            delete this._register_reqs[request];
+
+        } else {
+            this._protocol_violation("REGISTER-ERROR received for non-pending request ID " + request);
+        }
+    };
 
     log() {
         var self = this;
