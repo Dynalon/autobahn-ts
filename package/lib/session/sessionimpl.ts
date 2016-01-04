@@ -34,8 +34,13 @@ import Registration from "./registration";
 import WAMP_FEATURES from "./wamp_features";
 import * as MsgType from "./messagetypes";
 
+// unfortunately we cant use a generic type argument for the key as it has to be of type
+// number | string
 interface NumberedHashtable<T> {
     [id: number]: T;
+}
+interface StringHashtable<T> {
+    [key: string]: T
 }
 
 type SubscribeRequest = [
@@ -68,6 +73,12 @@ type RegisterRequest = [
     Function,
     // options
     Object
+];
+
+// _unregister_reqs
+type UnregisterRequest = [
+    Deferred<Registration> & Promise<Registration>,
+    Registration
 ];
 
 type CallRequest = [
@@ -115,7 +126,6 @@ export default class Session {
 
     public onjoin: Function;
     public onleave: Function;
-
 
     public get defer() {
         return this._defer;
@@ -203,7 +213,7 @@ export default class Session {
 
     private _call_reqs: NumberedHashtable<CallRequest> = {};
     private _register_reqs: NumberedHashtable<RegisterRequest> = {};
-    private _unregister_reqs = {};
+    private _unregister_reqs: NumberedHashtable<UnregisterRequest> = {};
 
     // subscriptions in place;
     private _subscriptions: NumberedHashtable<Array<Subscription>> = {};
@@ -211,11 +221,8 @@ export default class Session {
     // registrations in place;
     private _registrations: NumberedHashtable<Registration> = {};
 
-    // incoming invocations;
-    private _invocations = {};
-
     // prefix shortcuts for URIs
-    private _prefixes = {};
+    private _prefixes: StringHashtable<string> = {};
 
     // the defaults for 'disclose_me'
     private _caller_disclose_me = false;
@@ -274,15 +281,13 @@ export default class Session {
                     let rf = msg[2];
                     this._detect_features(rf);
 
-
                     if (self.onjoin) {
                         self.onjoin(msg[2]);
                     }
 
                 } else if (msg_type === MSG_TYPE.ABORT) {
 
-                    var details = msg[1];
-                    var reason = msg[2];
+                    let [, details, reason] = msg;
 
                     if (self.onleave) {
                         self.onleave(reason, details);
@@ -292,8 +297,7 @@ export default class Session {
 
                     if (self._onchallenge) {
 
-                        var method = msg[1];
-                        var extra = msg[2];
+                        let [, method, extra] = msg;
 
                         when_fn.call(self._onchallenge, self, method, extra).then(
                             function(signature) {
@@ -336,8 +340,7 @@ export default class Session {
                     self._realm = null;
                     self._features = null;
 
-                    var details = msg[1];
-                    var reason = msg[2];
+                    let [, details, reason] = msg;
 
                     if (self.onleave) {
                         self.onleave(reason, details);
