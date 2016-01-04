@@ -1,0 +1,4 @@
+0 "all sessions connected"
+1 "publishing to topic 'com.myapp.topic1': Hello world!"
+2 "Got event:" "Hello world!"
+3 "Unsubscribing..."
