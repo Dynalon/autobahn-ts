@@ -12,21 +12,30 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 import {Deferred, Promise} from "when";
+import * as when from "when";
+
+import Session from "./sessionimpl";
 
 export default class Registration {
 
-    public procedure;
-    public endpoint;
-    public options;
-    public session;
-    public id;
+    public procedure: string;
+    public endpoint: Function;
+    public options: any;
+    public session: Session;
+    public id: number;
     public active: boolean = true;
 
     public on_unregister: Promise<any>;
     // TODO make private
     public _on_unregister: Deferred<any>;
 
-    constructor(procedure, endpoint, options, session, id) {
+    constructor(
+        procedure: string,
+        endpoint: Function,
+        options: any,
+        session: Session,
+        id: number
+    ) {
 
         this.procedure = procedure;
         this.endpoint = endpoint;
@@ -35,14 +44,8 @@ export default class Registration {
         this.id = id;
 
         // this will fire when the endpoint is unregistered
-        this._on_unregister = session._defer();
-
-        if (this._on_unregister.promise.then) {
-            // whenjs has the actual user promise in an attribute
-            this.on_unregister = this._on_unregister.promise;
-        } else {
-            this.on_unregister = this._on_unregister as any;
-        }
+        this._on_unregister = when.defer<any>();
+        this.on_unregister = this._on_unregister.promise;
     }
 
     unregister() {

@@ -11,7 +11,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-import {Deferred, Promise} from "when";
+import {Promise, Deferred} from "when";
+import * as when from "when";
+
 import Event from "./event";
 import Session from "./sessionimpl";
 
@@ -29,13 +31,8 @@ export class Subscription {
     public id: number;
     public active: boolean = true;
 
-    public get on_unsubscribe() {
-        if (this._on_unsubscribe.promise.then) {
-            // whenjs has the actual user promise in an attribute
-            return this._on_unsubscribe.promise;
-        } else {
-            return this._on_unsubscribe as any;
-        }
+    public get on_unsubscribe(): Promise<any> {
+        return this._on_unsubscribe.promise;
     }
 
     public _on_unsubscribe: Deferred<any>;
@@ -49,7 +46,7 @@ export class Subscription {
         this.id = id;
 
         // this will fire when the handler is unsubscribed
-        this._on_unsubscribe = session._defer();
+        this._on_unsubscribe = when.defer<any>();
     }
 
     unsubscribe() {

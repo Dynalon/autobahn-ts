@@ -14,7 +14,8 @@
 // require('assert') would be nice .. but it does not
 // work with Google Closure after Browserify
 
-var when = require('when');
+import * as when from 'when';
+
 var when_fn = require("when/function");
 import {Promise, Deferred} from 'when';
 
@@ -45,7 +46,7 @@ interface StringHashtable<T> {
 
 type SubscribeRequest = [
     // deferred that resolves the the SUBSCRIBED ack from the broker arrived
-    Deferred<Subscription> & Promise<Subscription>,
+    Deferred<Subscription>,
     // topic
     string,
     SubscriptionHandler,
@@ -54,19 +55,19 @@ type SubscribeRequest = [
 ];
 
 type UnsubscribeRequest = [
-    Deferred<boolean> & Promise<boolean>,
+    Deferred<boolean>,
     number
 ];
 
 type PublishRequest = [
-    Deferred<Publication> & Promise<Publication>,
+    Deferred<Publication>,
     // options object
     Object
 ];
 
 // _register_reqs
 type RegisterRequest = [
-    Deferred<Registration> & Promise<Registration>,
+    Deferred<Registration>,
     // procedure name i.e. 'com.arguments.ping',
     string,
     // procedure handler
@@ -77,12 +78,12 @@ type RegisterRequest = [
 
 // _unregister_reqs
 type UnregisterRequest = [
-    Deferred<Registration> & Promise<Registration>,
+    Deferred<Registration>,
     Registration
 ];
 
 type CallRequest = [
-    Deferred<Result> & Promise<Result>,
+    Deferred<Result>,
     // options
     any
 ];
@@ -126,10 +127,6 @@ export default class Session {
 
     public onjoin: Function;
     public onleave: Function;
-
-    public get defer() {
-        return this._defer;
-    }
 
     public get id() {
         return this._id;
@@ -184,11 +181,6 @@ export default class Session {
     // the transport connection (WebSocket object)
     private _socket;
 
-    // the Deferred factory to use
-    // TODO don't use union type, don't use undefined object returns at all
-    // TODO make private
-    public _defer: () => Promise<any> & Deferred<any>;
-
     // the WAMP authentication challenge handler
     private _onchallenge: Function;
 
@@ -233,12 +225,11 @@ export default class Session {
     // only used for performance measurement
     private _created;
 
-    constructor(socket, defer, onchallenge: Function) {
+    constructor(socket, unused, onchallenge: Function) {
 
         var self = this;
 
         this._socket = socket;
-        this._defer = defer;
         this._onchallenge = onchallenge;
 
         this._id = null;
@@ -693,13 +684,7 @@ export default class Session {
         var [, request, registration] = msg;
 
         if (request in this._register_reqs) {
-
-            var r = this._register_reqs[request];
-
-            var d = r[0];
-            var procedure = r[1];
-            var endpoint = r[2];
-            var options = r[3];
+            let [d, procedure, endpoint, options] = this._register_reqs[request];
 
             var reg = new Registration(procedure, endpoint, options, this, registration);
 
@@ -708,7 +693,6 @@ export default class Session {
             d.resolve(reg);
 
             delete this._register_reqs[request];
-
         } else {
             this._protocol_violation("REGISTERED received for non-pending request ID " + request);
         }
@@ -1096,7 +1080,7 @@ export default class Session {
 
         // create and remember new CALL request
         //
-        var d = self._defer();
+        var d = when.defer<Result>();
         var request = newid();
         self._call_reqs[request] = [d, options];
 
@@ -1117,12 +1101,7 @@ export default class Session {
         //
         self._send_wamp(msg);
 
-        if (d.promise.then) {
-            // whenjs has the actual user promise in an attribute
-            return d.promise;
-        } else {
-            return d;
-        }
+        return d.promise;
     }
 
 
@@ -1148,10 +1127,10 @@ export default class Session {
 
         // create and remember new PUBLISH request
         //
-        var d = null;
+        var d: Deferred<Publication> = null;
         var request = newid();
         if (options.acknowledge) {
-            d = self._defer();
+            d = when.defer<Publication>();
             self._publish_reqs[request] = [d, options];
         }
 
@@ -1173,12 +1152,8 @@ export default class Session {
         self._send_wamp(msg);
 
         if (d) {
-            if (d.promise.then) {
-                // whenjs has the actual user promise in an attribute
-                return d.promise;
-            } else {
-                return d;
-            }
+            // whenjs has the actual user promise in an attribute
+            return d.promise;
         }
     }
 
@@ -1198,7 +1173,7 @@ export default class Session {
         // create an remember new SUBSCRIBE request
         //
         var request = newid();
-        var d = self._defer();
+        var d = when.defer<Subscription>();
         self._subscribe_reqs[request] = [d, topic, handler, options];
 
         // construct SUBSCRIBE message
@@ -1215,12 +1190,7 @@ export default class Session {
         //
         self._send_wamp(msg);
 
-        if (d.promise.then) {
-            // whenjs has the actual user promise in an attribute
-            return d.promise;
-        } else {
-            return d;
-        }
+        return d.promise;
     }
 
 
@@ -1230,17 +1200,15 @@ export default class Session {
         util.assert(typeof endpoint === 'function', "Session.register: <endpoint> must be a function");
         util.assert(!options || options instanceof Object, "Session.register: <options> must be an object {}");
 
-        var self = this;
-
-        if (!self.isOpen) {
+        if (!this.isOpen) {
             throw "session not open";
         }
 
         // create an remember new REGISTER request
         //
         var request = newid();
-        var d = self._defer();
-        self._register_reqs[request] = [d, procedure, endpoint, options];
+        var d = when.defer<Registration>();
+        this._register_reqs[request] = [d, procedure, endpoint, options];
 
         // construct REGISTER message
         //
@@ -1250,22 +1218,17 @@ export default class Session {
         } else {
             msg.push({});
         }
-        msg.push(self.resolve(procedure));
+        msg.push(this.resolve(procedure));
 
         // send WAMP message
         //
-        self._send_wamp(msg);
+        this._send_wamp(msg);
 
-        if (d.promise.then) {
-            // whenjs has the actual user promise in an attribute
-            return d.promise;
-        } else {
-            return d as any;
-        }
+        return d.promise;
     }
 
 
-    unsubscribe(subscription: Subscription) {
+    unsubscribe(subscription: Subscription): Promise<any> {
 
         util.assert(subscription instanceof Subscription, "Session.unsubscribe: <subscription> must be an instance of class autobahn.Subscription");
 
@@ -1290,7 +1253,7 @@ export default class Session {
         subs.splice(i, 1);
         subscription.active = false;
 
-        var d = self._defer();
+        var d = when.defer<boolean>();
 
         if (subs.length) {
             // there are still handlers on the subscription ..
@@ -1314,12 +1277,7 @@ export default class Session {
             self._send_wamp(msg);
         }
 
-        if (d.promise.then) {
-            // whenjs has the actual user promise in an attribute
-            return d.promise;
-        } else {
-            return d;
-        }
+        return d.promise;
     }
 
 
@@ -1340,7 +1298,7 @@ export default class Session {
         // create and remember new UNREGISTER request
         //
         var request = newid();
-        var d = self._defer();
+        var d = when.defer<Registration>();
         self._unregister_reqs[request] = [d, registration];
 
         // construct UNREGISTER message
@@ -1351,12 +1309,7 @@ export default class Session {
         //
         self._send_wamp(msg);
 
-        if (d.promise.then) {
-            // whenjs has the actual user promise in an attribute
-            return d.promise;
-        } else {
-            return d;
-        }
+        return d.promise;
     }
 
 
