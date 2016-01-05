@@ -1,9 +1,11 @@
 language: javascript
 
 install:
+  - cd package/
   - npm install
 
 script:
+  - cd package/
   - npm run build
   - npm test
 
