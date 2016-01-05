@@ -5,5 +5,3 @@ node_modules
 *.log
 *.pyc
 *.pid
-
-package/typings/
