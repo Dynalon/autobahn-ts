@@ -7,9 +7,8 @@ install:
   - npm install
 
 script:
-  - cd package/
-  # newer npm spinner is just a pain and will mess up in the logfiles
-  - npm config set spin=false
+  # the working dir is re-used from the 'install' phase, no need to switch dirs here
+
   - npm run build
 
   # for tests, we'd need a crossbario instance :(
