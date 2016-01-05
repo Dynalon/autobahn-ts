@@ -1,5 +1,5 @@
 {
-  "name": "autobahn",
+  "name": "autobahnTS",
   "version": "0.9.9",
   "description": "An implementation of The Web Application Messaging Protocol (WAMP).",
   "main": "index.js",
@@ -7,16 +7,23 @@
     "lib/transport/rawsocket.js": false
   },
   "scripts": {
-    "test": "nodeunit test/test.js"
-  },
-  "dependencies": {
-    "crypto-js": ">= 3.1.5",
-    "when": ">= 3.7.3",
-    "ws": ">= 0.8.0"
+    "test": "./node_modules/.bin/nodeunit test/test.js",
+    "postinstall": "npm run typings",
+    "tsc": "./node_modules/.bin/tsc",
+    "typings": "./node_modules/.bin/typings install",
+    "bundle": "./node_modules/.bin/browserify lib/autobahn.js --standalone autobahn -o build/autobahn.js",
+    "build": "npm run tsc && npm run bundle"
   },
   "devDependencies": {
-    "browserify": ">= 11.0.1",
-    "nodeunit": ">= 0.9.1"
+    "browserify": "^12.0.1",
+    "bufferutil": "^1.2.1",
+    "crypto-js": ">= 3.1.5",
+    "nodeunit": "^0.9.1",
+    "typescript": "^1.7.5",
+    "typings": "^0.4.1",
+    "utf-8-validate": "^1.2.1",
+    "when": ">= 3.7.3",
+    "ws": ">= 0.8.0"
   },
   "repository": {
     "type": "git",
