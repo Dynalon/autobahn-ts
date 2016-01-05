@@ -1,3 +1,10 @@
+# IMPORTANT NOTE
+
+This is an experimental TypeScript port of the original [AutobahnJS](https://github.com/crossbario/autobahn-js) library. This port is currently in experimental stage and done for educational purposes. DO NOT USE IN PRODUCTION!
+
+Original README.md from autobahn-js follows:
+- - - -
+
 # **Autobahn**|JS
 
 **Autobahn**|JS is a subproject of the [Autobahn project](http://autobahn.ws/) and provides an open-source implementation of the **[Web Application Messaging Protocol V2](http://wamp.ws/)** in JavaScript
