@@ -43,17 +43,17 @@ var _transports = new Transports();
 
 // register default transports
 try {
-    var websocket = require('./transport/websocket.js');
+    var websocket = require('./transport/websocket');
     _transports.register("websocket", websocket.Factory);
 } catch (err) { };
 
 try {
-    var longpoll = require('./transport/longpoll.js');
+    var longpoll = require('./transport/longpoll');
     _transports.register("longpoll", longpoll.Factory);
 } catch (err) { };
 
 try {
-    var rawsocket = require('./transport/rawsocket.js');
+    var rawsocket = require('./transport/rawsocket');
     _transports.register("rawsocket", rawsocket.Factory);
 } catch (err) { };
 

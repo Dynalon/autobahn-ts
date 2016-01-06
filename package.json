@@ -4,7 +4,9 @@
   "description": "An implementation of The Web Application Messaging Protocol (WAMP).",
   "main": "index.js",
   "browser": {
-    "src/transport/rawsocket.js": false
+    "./src/transport/rawsocket": false,
+    "ws": false,
+    "crypto-js": true
   },
   "scripts": {
     "test": "nodeunit test/test.js",
