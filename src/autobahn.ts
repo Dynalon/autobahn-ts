@@ -23,8 +23,7 @@ if ('AUTOBAHN_DEBUG' in global && AUTOBAHN_DEBUG) {
 }
 
 var pjson = require('../package.json');
-exports.version = pjson.version;
-
+export var version = pjson.version;
 export { default as Connection } from './connection';
 export { default as transports } from './transports';
 export { default as Session } from './session/session';
@@ -35,8 +34,8 @@ export { default as Error } from './session/error';
 var persona = require('./auth/persona.js');
 var cra = require('./auth/cra.js');
 
-exports.auth_persona = persona.auth;
-exports.auth_cra = cra;
+export var auth_persona = persona.auth;
+export var auth_cra = cra;
 
 // These are not really accessible from the outside
 // (at least not their constructor functions should not be)
