@@ -12,8 +12,9 @@
     "tsc": "tsc",
     "typings": "typings install",
     "watch": "tsc --watch",
+    "minify": "uglifyjs -o build/autobahn.min.js build/autobahn.js",
     "bundle": "browserify src/autobahn.js --standalone autobahn -o build/autobahn.js",
-    "build": "npm run tsc && npm run bundle"
+    "build": "npm run tsc && npm run bundle && npm run minify"
   },
   "devDependencies": {
     "browserify": "^12.0.1",
@@ -22,6 +23,7 @@
     "nodeunit": "^0.9.1",
     "typescript": "^1.7.5",
     "typings": "^0.4.1",
+    "uglify-js": "^2.6.1",
     "utf-8-validate": "^1.2.1",
     "when": ">= 3.7.3",
     "ws": ">= 0.8.0"
