@@ -14,14 +14,6 @@
 // Polyfills for <= IE9
 require('./polyfill.js');
 
-var pjson = require('../package.json');
-
-import * as when from 'when';
-
-import Transports from './transports';
-
-//var fn = require("when/function");
-
 if ('AUTOBAHN_DEBUG' in global && AUTOBAHN_DEBUG) {
    // https://github.com/cujojs/when/blob/master/docs/api.md#whenmonitor
    require('when/monitor/console');
@@ -30,21 +22,18 @@ if ('AUTOBAHN_DEBUG' in global && AUTOBAHN_DEBUG) {
    }
 }
 
-import * as util from './util';
-import * as log from './log';
-import * as session from './session/session';
+var pjson = require('../package.json');
+exports.version = pjson.version;
+
 export { default as Connection } from './connection';
+export { default as transports } from './transports';
+export { default as Session } from './session/sessionimpl';
+export { default as Result } from './session/result';
+export { default as Error } from './session/error';
+
 
 var persona = require('./auth/persona.js');
 var cra = require('./auth/cra.js');
-
-exports.version = pjson.version;
-
-exports.transports = Transports;
-
-exports.Session = session.Session;
-exports.Error = session.Error;
-exports.Result = session.Result;
 
 exports.auth_persona = persona.auth;
 exports.auth_cra = cra;

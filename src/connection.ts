@@ -14,7 +14,8 @@
 declare var Promise;
 var when = require('when');
 
-var session = require('./session/session.js');
+import { default as Session } from './session/sessionimpl';
+
 var util = require('./util.js');
 var log = require('./log.js');
 var autobahn = require('./autobahn.js');
@@ -291,7 +292,7 @@ Connection.prototype.open = function () {
       }
 
       // create a new WAMP session using the WebSocket connection as transport
-      self._session = new session.Session(self._transport, self._defer, self._options.onchallenge);
+      self._session = new Session(self._transport, self._defer, self._options.onchallenge);
       self._session_close_reason = null;
       self._session_close_message = null;
 
