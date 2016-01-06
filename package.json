@@ -7,7 +7,7 @@
     "src/transport/rawsocket.js": false
   },
   "scripts": {
-    "test": "nodeunit unittest/test.js",
+    "test": "nodeunit test/test.js",
     "postinstall": "npm run typings",
     "tsc": "tsc",
     "typings": "typings install",
