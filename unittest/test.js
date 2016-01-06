@@ -49,6 +49,7 @@ exports.testPubsubComplex = pubsub_complex.testPubsubComplex;
 exports.testPubsubOptions = pubsub_options.testPubsubOptions;
 exports.testPubsubExcludeMe = pubsub_excludme.testPubsubExcludeMe;
 exports.testPubsubExclude = pubsub_exclude.testPubsubExclude;
+exports.testPubsubEligible = pubsub_eligible.testPubsubEligible;
 exports.testPubsubPrefixSub = pubsub_prefix_sub.testPubsubPrefixSub;
 exports.testPubsubWildcardSub = pubsub_wildcard_sub.testPubsubWildcardSub;
 exports.testPubsubPublisherDiscloseMe = pubsub_publisher_disclose_me.testPubsubPublisherDiscloseMe;
