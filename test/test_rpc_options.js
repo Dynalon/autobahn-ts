@@ -13,7 +13,7 @@
 
 var autobahn = require('./../index.js');
 var testutil = require('./testutil.js');
-
+var when = require('when');
 
 exports.testRpcOptions = function (testcase) {
 
@@ -60,7 +60,7 @@ exports.testRpcOptions = function (testcase) {
          pl1.push(session.register(uri, endpoints[uri]));
       }
 
-      autobahn.when.all(pl1).then(
+      when.all(pl1).then(
          function () {
             test.log("All registered.");
 
@@ -85,7 +85,7 @@ exports.testRpcOptions = function (testcase) {
                ));
             }
 
-            autobahn.when.all(pl2).then(function () {
+            when.all(pl2).then(function () {
                test.log("All finished.");
                connection.close();
 
@@ -97,7 +97,7 @@ exports.testRpcOptions = function (testcase) {
          function () {
             test.log("Registration failed!", arguments);
          }
-      );  
+      );
    };
 
    connection.open();

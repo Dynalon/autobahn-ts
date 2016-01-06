@@ -13,7 +13,7 @@
 
 var autobahn = require('./../index.js');
 var testutil = require('./testutil.js');
-
+var when = require('when');
 
 exports.testPubsubPublisherDiscloseMe = function (testcase) {
 
@@ -23,7 +23,7 @@ exports.testPubsubPublisherDiscloseMe = function (testcase) {
 
    var dl = testutil.connect_n(2);
 
-   autobahn.when.all(dl).then(
+   when.all(dl).then(
       function (res) {
          test.log("all sessions connected");
 
@@ -42,16 +42,16 @@ exports.testPubsubPublisherDiscloseMe = function (testcase) {
                testcase.done();
          }
 
-         
+
 
          // Case 1: "session.publisher_disclose_me" unset
-         // 
+         //
          // Expected:
          //    - no publisher ID given for call without "disclose_me" set
          //    - no publisher ID given for call without "disclose_me" set to "false"
          //    - publisher ID given for call without "disclose_me" set to "true"
          function case1 () {
-         
+
             test.log("");
             test.log("Case 1: 'session.publisher_disclose_me' unset");
             test.log("=============================================");
@@ -59,7 +59,7 @@ exports.testPubsubPublisherDiscloseMe = function (testcase) {
             var counter = 0;
 
             function onevent1 (args, kwargs, details) {
-               
+
                var publisher_disclosed = details.publisher === undefined ? false : true;
                test.log("Publisher disclosed:", publisher_disclosed);
 
@@ -67,9 +67,9 @@ exports.testPubsubPublisherDiscloseMe = function (testcase) {
                if (counter === 3) {
                   test.log("");
                   test.log("");
-                  
+
                   case2();
-                  
+
                }
             }
 
@@ -83,13 +83,13 @@ exports.testPubsubPublisherDiscloseMe = function (testcase) {
          }
 
          // Case 2: "session.publisher_disclose_me" set to "false"
-         // 
+         //
          // Expected:
          //    - no publisher ID given for call without "disclose_me" set
          //    - no publisher ID given for call without "disclose_me" set to "false"
          //    - publisher ID given for call without "disclose_me" set to "true"
          function case2 () {
-         
+
             test.log("");
             test.log("Case 2: 'session.publisher_disclose_me' set to 'false'");
             test.log("======================================================");
@@ -97,7 +97,7 @@ exports.testPubsubPublisherDiscloseMe = function (testcase) {
             var counter = 0;
 
             function onevent2 (args, kwargs, details) {
-               
+
                var publisher_disclosed = details.publisher === undefined ? false : true;
                test.log("Publisher disclosed:", publisher_disclosed);
 
@@ -105,9 +105,9 @@ exports.testPubsubPublisherDiscloseMe = function (testcase) {
                if (counter === 3) {
                   test.log("");
                   test.log("");
-                  
+
                   case3();
-                  
+
                }
             }
 
@@ -122,13 +122,13 @@ exports.testPubsubPublisherDiscloseMe = function (testcase) {
          }
 
          // Case 3: "session.publisher_disclose_me" set to "true"
-         // 
+         //
          // Expected:
          //    - publisher ID given for call without "disclose_me" set
          //    - no publisher ID given for call without "disclose_me" set to "false"
          //    - publisher ID given for call without "disclose_me" set to "true"
          function case3 () {
-         
+
             test.log("");
             test.log("Case 3: 'session.publisher_disclose_me' set to 'true'");
             test.log("=====================================================");
@@ -136,7 +136,7 @@ exports.testPubsubPublisherDiscloseMe = function (testcase) {
             var counter = 0;
 
             function onevent3 (args, kwargs, details) {
-               
+
                var publisher_disclosed = details.publisher === undefined ? false : true;
                test.log("Publisher disclosed:", publisher_disclosed);
 
@@ -144,9 +144,9 @@ exports.testPubsubPublisherDiscloseMe = function (testcase) {
                if (counter === 3) {
                   test.log("");
                   test.log("");
-                  
+
                   onTestFinished();
-                  
+
                }
             }
 
@@ -160,7 +160,7 @@ exports.testPubsubPublisherDiscloseMe = function (testcase) {
 
          }
 
-         case1();      
+         case1();
 
       },
       function (err) {

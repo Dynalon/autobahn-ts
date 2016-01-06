@@ -14,7 +14,7 @@
 
 var autobahn = require('./../index.js');
 var testutil = require('./testutil.js');
-
+var when = require('when');
 
 exports.testPubSubUnsubscribe = function (testcase) {
 
@@ -24,7 +24,7 @@ exports.testPubSubUnsubscribe = function (testcase) {
 
    var dl = testutil.connect_n(2);
 
-   autobahn.when.all(dl).then(
+   when.all(dl).then(
       function (res) {
          test.log("all sessions connected");
 

@@ -13,7 +13,7 @@
 
 var autobahn = require('./../index.js');
 var testutil = require('./testutil.js');
-
+var when = require('when');
 
 exports.testRpcProgress = function (testcase) {
 
@@ -42,14 +42,14 @@ exports.testRpcProgress = function (testcase) {
                if (i < n) {
                   test.log("longop() - progress", i);
                   details.progress([i]);
-                  i += 1;               
+                  i += 1;
                } else {
                   clearInterval(interval_id);
                }
             }, 100);
          }
 
-         var d = autobahn.when.defer();
+         var d = when.defer();
 
          setTimeout(function () {
             d.resolve(n);
@@ -68,7 +68,7 @@ exports.testRpcProgress = function (testcase) {
          pl1.push(session.register(uri, endpoints[uri]));
       }
 
-      autobahn.when.all(pl1).then(
+      when.all(pl1).then(
          function () {
             test.log("All registered.");
 
@@ -86,7 +86,7 @@ exports.testRpcProgress = function (testcase) {
                }
             ));
 
-            autobahn.when.all(pl2).then(function () {
+            when.all(pl2).then(function () {
                test.log("All finished.");
                connection.close();
 
@@ -98,7 +98,7 @@ exports.testRpcProgress = function (testcase) {
          function () {
             test.log("Registration failed!", arguments);
          }
-      );  
+      );
    };
 
    connection.open();

@@ -13,7 +13,7 @@
 
 var autobahn = require('./../index.js');
 var testutil = require('./testutil.js');
-
+var when = require('when');
 
 exports.testRpcRouting = function (testcase) {
 
@@ -23,7 +23,7 @@ exports.testRpcRouting = function (testcase) {
 
    var dl = testutil.connect_n(2);
 
-   autobahn.when.all(dl).then(
+   when.all(dl).then(
       function (res) {
          test.log("all sessions connected");
 
@@ -39,9 +39,9 @@ exports.testRpcRouting = function (testcase) {
 
          session1.register('com.math.square', square).then(
             function (res) {
-   
+
                test.log("square() registered on session 1");
-   
+
                session2.call('com.math.square', [23], {}, {disclose_me: true}).then(
                   function (res) {
                      test.log("result:", res);

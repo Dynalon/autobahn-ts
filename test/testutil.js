@@ -13,6 +13,7 @@
 
 var autobahn = require('./../index.js');
 var fs = require("fs");
+var when = require("when");
 
 /*
 // fully qualified config
@@ -38,7 +39,7 @@ function connect_n(n) {
    var dl = [];
    for (var i = 0; i < n; ++i) {
       (function (idx) {
-         var d = autobahn.when.defer();
+         var d = when.defer();
          var connection = new autobahn.Connection(config);
 
          connection.onopen = function (session) {

@@ -11,14 +11,13 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+declare var Promise;
 var when = require('when');
 
 var session = require('./session/session.js');
 var util = require('./util.js');
 var log = require('./log.js');
 var autobahn = require('./autobahn.js');
-
-
 var Connection = function (options) {
 
    var self = this;
@@ -34,7 +33,7 @@ var Connection = function (options) {
          // ES6-based deferred factory
          //
          self._defer = function () {
-            var deferred = {};
+            var deferred: any = {};
 
             deferred.promise = new Promise(function (resolve, reject) {
                deferred.resolve = resolve;
@@ -349,7 +348,7 @@ Connection.prototype.open = function () {
          } else {
             reason = "closed";
          }
-        
+
          var next_retry = self._autoreconnect_advance();
 
          // fire app code handler
@@ -480,6 +479,4 @@ Object.defineProperty(Connection.prototype, "isRetrying", {
    }
 });
 
-
-
-exports.Connection = Connection;
+export default Connection;

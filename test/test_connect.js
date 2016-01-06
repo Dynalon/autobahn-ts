@@ -13,7 +13,7 @@
 
 var autobahn = require('./../index.js');
 var testutil = require('./testutil.js');
-
+var when = require("when");
 
 exports.testConnect = function (testcase) {
 
@@ -26,7 +26,7 @@ exports.testConnect = function (testcase) {
 
    var dl = testutil.connect_n(N);
 
-   autobahn.when.all(dl).then(
+   when.all(dl).then(
       function (res) {
          test.log("all " + res.length + " sessions connected");
 

@@ -12,12 +12,13 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // Tests "exclude_me" option on publication,
-// which overrides the default WAMP routing behaviour, i.e. 
+// which overrides the default WAMP routing behaviour, i.e.
 // that the publisher doesn't receive an event
 // for its own publication
 
 var autobahn = require('./../index.js');
 var testutil = require('./testutil.js');
+var when = require('when');
 
 exports.testPubsubExcludeMe = function (testcase) {
 
@@ -29,7 +30,7 @@ exports.testPubsubExcludeMe = function (testcase) {
 
    var delay = 100;
 
-   autobahn.when.all(dl).then(
+   when.all(dl).then(
       function (res) {
          test.log("all sessions connected");
 
@@ -52,8 +53,8 @@ exports.testPubsubExcludeMe = function (testcase) {
          }
 
          // Case 1: "exclude_me" unset
-         // 
-         // Expected: 
+         //
+         // Expected:
          //    - session1 (publisher) receives no events
          //    - session2 (other subscriber) receives events
          function case1 () {
@@ -77,7 +78,7 @@ exports.testPubsubExcludeMe = function (testcase) {
                session1Received = true;
             }
 
-            // Should be called 
+            // Should be called
             function onevent2 (args) {
                test.log("Session 2 got event:", args[0]);
                received += 1;
@@ -102,8 +103,8 @@ exports.testPubsubExcludeMe = function (testcase) {
          }
 
          // Case 2: "exclude_me: true"
-         // 
-         // Expected: 
+         //
+         // Expected:
          //    - session1 (publisher) receives no events
          //    - session2 (other subscriber) receives events
          function case2 () {
@@ -127,7 +128,7 @@ exports.testPubsubExcludeMe = function (testcase) {
                test.log("Session 1 got event even though it should have been excluded.");
             }
 
-            // Should be called 
+            // Should be called
             function onevent2 (args) {
                test.log("Session 2 got event:", args[0]);
                received += 1;
@@ -153,8 +154,8 @@ exports.testPubsubExcludeMe = function (testcase) {
          }
 
          // Case 3: "exclude_me: false"
-         // 
-         // Expected: 
+         //
+         // Expected:
          //    - session1 (publisher) receives events
          //    - session2 (other subscriber) receives events
          function case3 () {
@@ -172,12 +173,12 @@ exports.testPubsubExcludeMe = function (testcase) {
             var received1 = 0;
             var received2 = 0;
 
-            var session1Finished = autobahn.when.defer();
-            var session2Finished = autobahn.when.defer();
+            var session1Finished = when.defer();
+            var session2Finished = when.defer();
             var testLog1 = [];
             var testLog2 = [];
 
-            
+
             function onevent1 (args) {
                testLog1.push("Session 1 got event: " + args[0]);
 
@@ -189,14 +190,14 @@ exports.testPubsubExcludeMe = function (testcase) {
 
             function onevent2 (args) {
                testLog2.push("Session 2 got event: " + args[0]);
-               
+
                received2 += 1;
                if (received2 > 5) {
                   session2Finished.resolve(true);
                }
             }
 
-            autobahn.when.all([session1Finished.promise, session2Finished.promise]).then(function() {
+            when.all([session1Finished.promise, session2Finished.promise]).then(function() {
 
                clearInterval(t3);
 

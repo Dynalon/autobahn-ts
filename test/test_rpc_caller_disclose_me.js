@@ -13,7 +13,7 @@
 
 var autobahn = require('./../index.js');
 var testutil = require('./testutil.js');
-
+var when = require('when');
 
 exports.testRpcCallerDiscloseMe = function (testcase) {
 
@@ -23,7 +23,7 @@ exports.testRpcCallerDiscloseMe = function (testcase) {
 
    var dl = testutil.connect_n(2);
 
-   autobahn.when.all(dl).then(
+   when.all(dl).then(
       function (res) {
          test.log("all sessions connected");
 
@@ -42,16 +42,16 @@ exports.testRpcCallerDiscloseMe = function (testcase) {
                testcase.done();
          }
 
-         
+
 
          // Case 1: "session.caller_disclose_me" unset
-         // 
+         //
          // Expected:
          //    - no caller ID given for call without "disclose_me" set
          //    - no caller ID given for call without "disclose_me" set to "false"
          //    - caller ID given for call without "disclose_me" set to "true"
          function case1 () {
-         
+
             test.log("");
             test.log("Case 1: 'session.caller_disclose_me' unset");
             test.log("=============================================");
@@ -59,7 +59,7 @@ exports.testRpcCallerDiscloseMe = function (testcase) {
             var counter = 0;
 
             function procedure1 (args, kwargs, details) {
-               
+
                var caller_disclosed = details.caller === undefined ? false : true;
                test.log("Caller disclosed:", caller_disclosed);
 
@@ -67,9 +67,9 @@ exports.testRpcCallerDiscloseMe = function (testcase) {
                if (counter === 3) {
                   test.log("");
                   test.log("");
-                  
+
                   case2();
-                  
+
                }
             }
 
@@ -82,13 +82,13 @@ exports.testRpcCallerDiscloseMe = function (testcase) {
          }
 
          // Case 2: "session.caller_disclose_me" set to "false"
-         // 
+         //
          // Expected:
          //    - no caller ID given for call without "disclose_me" set
          //    - no caller ID given for call without "disclose_me" set to "false"
          //    - caller ID given for call without "disclose_me" set to "true"
          function case2 () {
-         
+
             test.log("");
             test.log("Case 2: 'session.caller_disclose_me' set to 'false'");
             test.log("======================================================");
@@ -96,7 +96,7 @@ exports.testRpcCallerDiscloseMe = function (testcase) {
             var counter = 0;
 
             function procedure2 (args, kwargs, details) {
-               
+
                var caller_disclosed = details.caller === undefined ? false : true;
                test.log("Caller disclosed:", caller_disclosed);
 
@@ -104,9 +104,9 @@ exports.testRpcCallerDiscloseMe = function (testcase) {
                if (counter === 3) {
                   test.log("");
                   test.log("");
-                  
+
                   case3();
-                  
+
                }
             }
 
@@ -121,13 +121,13 @@ exports.testRpcCallerDiscloseMe = function (testcase) {
          }
 
          // Case 3: "session.caller_disclose_me" set to "true"
-         // 
+         //
          // Expected:
          //    - caller ID given for call without "disclose_me" set
          //    - no caller ID given for call without "disclose_me" set to "false"
          //    - caller ID given for call without "disclose_me" set to "true"
          function case3 () {
-         
+
             test.log("");
             test.log("Case 3: 'session.caller_disclose_me' set to 'true'");
             test.log("=====================================================");
@@ -135,7 +135,7 @@ exports.testRpcCallerDiscloseMe = function (testcase) {
             var counter = 0;
 
             function procedure3 (args, kwargs, details) {
-               
+
                var caller_disclosed = details.caller === undefined ? false : true;
                test.log("Caller disclosed:", caller_disclosed);
 
@@ -143,9 +143,9 @@ exports.testRpcCallerDiscloseMe = function (testcase) {
                if (counter === 3) {
                   test.log("");
                   test.log("");
-                  
+
                   onTestFinished();
-                  
+
                }
             }
 
@@ -159,7 +159,7 @@ exports.testRpcCallerDiscloseMe = function (testcase) {
 
          }
 
-         case1();      
+         case1();
 
       },
       function (err) {

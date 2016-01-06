@@ -17,6 +17,7 @@
 
 var autobahn = require('./../index.js');
 var testutil = require('./testutil.js');
+var when = require('when');
 
 exports.testPubsubEligible = function (testcase) {
 
@@ -28,7 +29,7 @@ exports.testPubsubEligible = function (testcase) {
 
    var delay = 100;
 
-   autobahn.when.all(dl).then(
+   when.all(dl).then(
       function (res) {
          test.log("all sessions connected");
 
@@ -50,8 +51,8 @@ exports.testPubsubEligible = function (testcase) {
          }
 
          // Case 1: "eligible" unset
-         // 
-         // Expected: 
+         //
+         // Expected:
          //    - both session2 and session3 receive events
 
          function case1 () {
@@ -69,12 +70,12 @@ exports.testPubsubEligible = function (testcase) {
             var received2 = 0;
             var received3 = 0;
 
-            var session2Finished = autobahn.when.defer();
-            var session3Finished = autobahn.when.defer();
+            var session2Finished = when.defer();
+            var session3Finished = when.defer();
             var testLog2 = [];
             var testLog3 = [];
 
-            
+
             function onevent2 (args) {
                testLog2.push("Session 2 got event: " + args[0]);
 
@@ -86,14 +87,14 @@ exports.testPubsubEligible = function (testcase) {
 
             function onevent3 (args) {
                testLog3.push("Session 3 got event: " + args[0]);
-               
+
                received3 += 1;
                if (received3 > 5) {
                   session3Finished.resolve(true);
                }
             }
 
-            autobahn.when.all([session2Finished.promise, session3Finished.promise]).then(function() {
+            when.all([session2Finished.promise, session3Finished.promise]).then(function() {
 
                clearInterval(t1);
 
@@ -121,8 +122,8 @@ exports.testPubsubEligible = function (testcase) {
 
 
          // Case 2: "eligible" session 3
-         // 
-         // Expected: 
+         //
+         // Expected:
          //    - only session3 receives events
 
          function case2 () {
@@ -146,7 +147,7 @@ exports.testPubsubEligible = function (testcase) {
                test.log("Session 2 got event even though it should have been excluded.");
             }
 
-            // Should be called 
+            // Should be called
             function onevent3 (args) {
                // console.log("case 2 started - 3");
                test.log("Session 3 got event:", args[0]);
@@ -178,8 +179,8 @@ exports.testPubsubEligible = function (testcase) {
 
 
          // Case 3: "eligible" both session 2 and session 3
-         // 
-         // Expected: 
+         //
+         // Expected:
          //    - both sessions receive events
 
          function case3 () {
@@ -197,12 +198,12 @@ exports.testPubsubEligible = function (testcase) {
             var received2 = 0;
             var received3 = 0;
 
-            var session2Finished = autobahn.when.defer();
-            var session3Finished = autobahn.when.defer();
+            var session2Finished = when.defer();
+            var session3Finished = when.defer();
             var testLog2 = [];
             var testLog3 = [];
 
-            
+
             function onevent2 (args) {
                testLog2.push("Session 2 got event: " + args[0]);
 
@@ -214,14 +215,14 @@ exports.testPubsubEligible = function (testcase) {
 
             function onevent3 (args) {
                testLog3.push("Session 3 got event: " + args[0]);
-               
+
                received3 += 1;
                if (received3 > 5) {
                   session3Finished.resolve(true);
                }
             }
 
-            autobahn.when.all([session2Finished.promise, session3Finished.promise]).then(function() {
+            when.all([session2Finished.promise, session3Finished.promise]).then(function() {
 
                clearInterval(t1);
 

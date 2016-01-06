@@ -32,9 +32,8 @@ if ('AUTOBAHN_DEBUG' in global && AUTOBAHN_DEBUG) {
 
 import * as util from './util';
 import * as log from './log';
-
 import * as session from './session/session';
-var connection = require('./connection.js');
+export { default as Connection } from './connection';
 
 var persona = require('./auth/persona.js');
 var cra = require('./auth/cra.js');
@@ -43,21 +42,20 @@ exports.version = pjson.version;
 
 exports.transports = Transports;
 
-exports.Connection = connection.Connection;
-
 exports.Session = session.Session;
-exports.Invocation = session.Invocation;
-exports.Event = session.Event;
-exports.Result = session.Result;
 exports.Error = session.Error;
-exports.Subscription = session.Subscription;
-exports.Registration = session.Registration;
-exports.Publication = session.Publication;
+exports.Result = session.Result;
 
 exports.auth_persona = persona.auth;
 exports.auth_cra = cra;
 
-exports.when = when;
+// These are not really accessible from the outside
+// (at least not their constructor functions should not be)
 
-exports.util = util;
-exports.log = log;
+// exports.Invocation = session.Invocation;
+// exports.Event = session.Event;
+// exports.Subscription = session.Subscription;
+// exports.Registration = session.Registration;
+// exports.Publication = session.Publication;
+// exports.log = log;
+
