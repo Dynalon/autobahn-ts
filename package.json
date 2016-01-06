@@ -6,7 +6,7 @@
   "browser": {
     "./src/transport/rawsocket": false,
     "ws": false,
-    "crypto-js": true
+    "crypto-js": false
   },
   "scripts": {
     "test": "nodeunit test/test.js",

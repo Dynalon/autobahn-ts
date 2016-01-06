@@ -31,11 +31,10 @@ export { default as Result } from './session/result';
 export { default as Error } from './session/error';
 
 
-var persona = require('./auth/persona.js');
-var cra = require('./auth/cra.js');
-
-export var auth_persona = persona.auth;
-export var auth_cra = cra;
+// var persona = require('./auth/persona.js');
+// var cra = require('./auth/cra.js');
+// export var auth_persona = persona.auth;
+// export var auth_cra = cra;
 
 // These are not really accessible from the outside
 // (at least not their constructor functions should not be)
