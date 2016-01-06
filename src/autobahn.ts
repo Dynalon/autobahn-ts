@@ -16,7 +16,7 @@ require('./polyfill.js');
 
 var pjson = require('../package.json');
 
-var when = require('when');
+import * as when from 'when';
 
 import Transports from './transports';
 
@@ -30,7 +30,8 @@ if ('AUTOBAHN_DEBUG' in global && AUTOBAHN_DEBUG) {
    }
 }
 
-var util = require('./util.js');
+import * as util from './util';
+
 var log = require('./log.js');
 var session = require('./session/session.js');
 var connection = require('./connection.js');

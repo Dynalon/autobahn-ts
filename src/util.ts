@@ -17,7 +17,7 @@ var when = require('when');
 
 
 
-var rand_normal = function (mean, sd) {
+export var rand_normal = function (mean, sd) {
    // Derive a Gaussian from Uniform random variables
    // http://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform
    var x1, x2, rad;
@@ -35,7 +35,7 @@ var rand_normal = function (mean, sd) {
 
 
 
-var assert = function (cond, text) {
+export var assert:any = function (cond, text) {
 	if (cond) {
       return;
    }
@@ -52,7 +52,7 @@ var assert = function (cond, text) {
 // supposed to work on IE8, IE9 and old Android WebKit browsers. We don't care
 // if it works with other browsers.
 //
-var http_post = function (url, data, timeout) {
+export var http_post = function (url, data, timeout) {
 
    log.debug("new http_post request", url, data, timeout);
 
@@ -148,7 +148,7 @@ var http_post = function (url, data, timeout) {
  *     (default: false)
  * @returns {Object} The mutated `base` object
  */
-var defaults = function () {
+export var defaults: any = function () {
    // Return an empty object if no arguments are passed
    if (arguments.length === 0) return {};
 
@@ -198,10 +198,3 @@ var defaults = function () {
    // Return the mutated base object
    return base;
 };
-
-
-
-exports.rand_normal = rand_normal;
-exports.assert = assert;
-exports.http_post = http_post;
-exports.defaults = defaults;
