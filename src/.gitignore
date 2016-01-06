@@ -2,4 +2,5 @@
 autobahn.js
 transports.js
 util.js
+log.js
 session/**/*.js

@@ -31,9 +31,9 @@ if ('AUTOBAHN_DEBUG' in global && AUTOBAHN_DEBUG) {
 }
 
 import * as util from './util';
+import * as log from './log';
 
-var log = require('./log.js');
-var session = require('./session/session.js');
+import * as session from './session/session';
 var connection = require('./connection.js');
 
 var persona = require('./auth/persona.js');

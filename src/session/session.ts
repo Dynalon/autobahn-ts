@@ -14,22 +14,13 @@
 // require('assert') would be nice .. but it does not
 // work with Google Closure after Browserify
 
-import Event from "./event";
-import Error from "./error";
-import Invocation from "./invocation";
-import Result from "./result";
-import Publication from "./publication";
-import {Subscription} from "./subscription";
-import Registration from "./registration";
-import WAMP_FEATURES from "./wamp_features";
-import Session from "./sessionimpl"
+export { default as Event } from "./event";
+export { default as Error } from "./error";
+export { default as Invocation } from "./invocation";
+export { default as Result } from "./result";
+export { default as Publication } from "./publication";
+export {Subscription} from "./subscription";
+export { default as Registration } from "./registration";
+export { default as WAMP_FEATURES } from "./wamp_features";
+export { default as Session } from "./sessionimpl"
 
-exports.Session = Session;
-
-exports.Invocation = Invocation;
-exports.Event = Event;
-exports.Result = Result;
-exports.Error = Error;
-exports.Subscription = Subscription;
-exports.Registration = Registration;
-exports.Publication = Publication;
