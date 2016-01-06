@@ -1,2 +1,4 @@
+# files we already moved to *.ts will output as *.js file, ignore those
 autobahn.js
+transports.js
 session/**/*.js

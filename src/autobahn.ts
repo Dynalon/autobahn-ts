@@ -17,6 +17,9 @@ require('./polyfill.js');
 var pjson = require('../package.json');
 
 var when = require('when');
+
+import Transports from './transports';
+
 //var fn = require("when/function");
 
 if ('AUTOBAHN_DEBUG' in global && AUTOBAHN_DEBUG) {
@@ -31,14 +34,13 @@ var util = require('./util.js');
 var log = require('./log.js');
 var session = require('./session/session.js');
 var connection = require('./connection.js');
-var configure = require('./configure.js');
 
 var persona = require('./auth/persona.js');
 var cra = require('./auth/cra.js');
 
 exports.version = pjson.version;
 
-exports.transports = configure.transports;
+exports.transports = Transports;
 
 exports.Connection = connection.Connection;
 

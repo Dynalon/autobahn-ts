@@ -1,6 +1,7 @@
 {
   "files": [
     "src/autobahn.ts",
+    "src/transports.ts",
     "src/session/session.ts",
     "src/compat.d.ts",
     "typings/main.d.ts"

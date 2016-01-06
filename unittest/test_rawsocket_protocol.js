@@ -1,5 +1,5 @@
 var stream = require('stream');
-var rawsocket = require('./../lib/transport/rawsocket.js');
+var rawsocket = require('./../src/transport/rawsocket.js');
 
 
 /**

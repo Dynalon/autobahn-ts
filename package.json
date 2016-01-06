@@ -7,10 +7,11 @@
     "src/transport/rawsocket.js": false
   },
   "scripts": {
-    "test": "nodeunit test/test.js",
+    "test": "nodeunit unittest/test.js",
     "postinstall": "npm run typings",
     "tsc": "tsc",
     "typings": "typings install",
+    "watch": "tsc --watch",
     "bundle": "browserify src/autobahn.js --standalone autobahn -o build/autobahn.js",
     "build": "npm run tsc && npm run bundle"
   },
