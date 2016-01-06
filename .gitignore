@@ -1,7 +1,9 @@
-.sconsign.dblite
 *.sublime-workspace
 build
 node_modules
+typings
+npm-*.log
+*.swp
 *.log
 *.pyc
 *.pid

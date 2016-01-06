@@ -1,8 +1,8 @@
 {
   "files": [
-    "lib/autobahn.ts",
-    "lib/session/session.ts",
-    "lib/compat.d.ts",
+    "src/autobahn.ts",
+    "src/session/session.ts",
+    "src/compat.d.ts",
     "typings/main.d.ts"
   ],
   "compilerOptions": {

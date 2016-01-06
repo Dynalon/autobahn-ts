@@ -4,14 +4,14 @@
   "description": "An implementation of The Web Application Messaging Protocol (WAMP).",
   "main": "index.js",
   "browser": {
-    "lib/transport/rawsocket.js": false
+    "src/transport/rawsocket.js": false
   },
   "scripts": {
-    "test": "./node_modules/.bin/nodeunit test/test.js",
+    "test": "nodeunit test/test.js",
     "postinstall": "npm run typings",
-    "tsc": "./node_modules/.bin/tsc",
-    "typings": "./node_modules/.bin/typings install",
-    "bundle": "./node_modules/.bin/browserify lib/autobahn.js --standalone autobahn -o build/autobahn.js",
+    "tsc": "tsc",
+    "typings": "typings install",
+    "bundle": "browserify src/autobahn.js --standalone autobahn -o build/autobahn.js",
     "build": "npm run tsc && npm run bundle"
   },
   "devDependencies": {
