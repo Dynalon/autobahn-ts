@@ -14,7 +14,7 @@
 import {Deferred, Promise} from "when";
 import * as when from "when";
 
-import Session from "./sessionimpl";
+import Session from "./session";
 
 export default class Registration {
 

@@ -12,13 +12,13 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 declare var Promise;
-var when = require('when');
 
-import { default as Session } from './session/sessionimpl';
+import * as when from 'when';
+import * as util from './util';
+import * as log from './log';
+import allTransports from './transports';
+import Session from './session/session';
 
-var util = require('./util.js');
-var log = require('./log.js');
-var autobahn = require('./autobahn.js');
 var Connection = function (options) {
 
    var self = this;
@@ -183,7 +183,7 @@ Connection.prototype._init_transport_factories = function () {
         util.assert(transport_options.type, "No transport.type specified");
         util.assert(typeof transport_options.type === "string", "transport.type must be a string");
         try {
-            transport_factory_klass = autobahn.transports.get(transport_options.type);
+            transport_factory_klass = allTransports.get(transport_options.type);
             if (transport_factory_klass) {
                 transport_factory = new transport_factory_klass(transport_options);
                 this._transport_factories.push(transport_factory);

@@ -15,7 +15,7 @@ import {Promise, Deferred} from "when";
 import * as when from "when";
 
 import Event from "./event";
-import Session from "./sessionimpl";
+import Session from "./session";
 
 export interface SubscriptionHandler {
     // TODO find out which args are optional
