@@ -243,7 +243,7 @@ export default class Connection {
         return res;
     }
 
-    public open = () => {
+    public open() {
 
         if (this._transport) {
             throw "connection already open (or opening)";
@@ -381,7 +381,7 @@ export default class Connection {
         retry();
     }
 
-    public close = (reason, message) => {
+    public close(reason, message) {
         if (!this._transport && !this._is_retrying) {
             throw "connection already closed";
         }
