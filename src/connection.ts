@@ -138,11 +138,10 @@ export default class Connection {
 
     private _create_transport = () => {
 
-        for (var i = 0; i < this._transport_factories.length; ++i) {
-            var transport_factory = this._transport_factories[i];
+        for (let transport_factory of this._transport_factories) {
             log.debug("trying to create WAMP transport of type: " + transport_factory.type);
             try {
-                var transport = transport_factory.create();
+                let transport = transport_factory.create();
                 if (transport) {
                     log.debug("using WAMP transport type: " + transport_factory.type);
                     return transport;
@@ -158,19 +157,16 @@ export default class Connection {
     }
 
     private _init_transport_factories = () => {
+        util.assert(this._options.transports, "No transport.factory specified");
+
         // WAMP transport
         //
-        var transports, transport_options, transport_factory, transport_factory_klass;
-
-        util.assert(this._options.transports, "No transport.factory specified");
-        transports = this._options.transports;
+        let transports = this._options.transports;
         //if(typeof transports === "object") {
         //    this._options.transports = [transports];
         //}
-        for (var i = 0; i < this._options.transports.length; ++i) {
+        for (let transport_options of this._options.transports) {
             // cascading transports until we find one which works
-            transport_options = this._options.transports[i];
-
             if (!transport_options.url) {
                 // defaulting to options.url if none is provided
                 transport_options.url = this._options.url;
@@ -181,9 +177,9 @@ export default class Connection {
             util.assert(transport_options.type, "No transport.type specified");
             util.assert(typeof transport_options.type === "string", "transport.type must be a string");
             try {
-                transport_factory_klass = allTransports.get(transport_options.type);
+                let transport_factory_klass = allTransports.get(transport_options.type);
                 if (transport_factory_klass) {
-                    transport_factory = new transport_factory_klass(transport_options);
+                    let transport_factory = new transport_factory_klass(transport_options);
                     this._transport_factories.push(transport_factory);
                 }
             } catch (exc) {
@@ -192,49 +188,43 @@ export default class Connection {
         }
     }
 
-    private _autoreconnect_reset_timer = function() {
+    private _autoreconnect_reset_timer() {
 
-        var self = this;
-
-        if (self._retry_timer) {
-            clearTimeout(self._retry_timer);
+        if (this._retry_timer) {
+            clearTimeout(this._retry_timer);
         }
-        self._retry_timer = null;
+        this._retry_timer = null;
     }
 
-    private _autoreconnect_reset = function() {
+    private _autoreconnect_reset() {
 
-        var self = this;
+        this._autoreconnect_reset_timer();
 
-        self._autoreconnect_reset_timer();
-
-        self._retry_count = 0;
-        self._retry_delay = self._initial_retry_delay;
-        self._is_retrying = false;
+        this._retry_count = 0;
+        this._retry_delay = this._initial_retry_delay;
+        this._is_retrying = false;
     }
 
-    private _autoreconnect_advance = function() {
-
-        var self = this;
+    private _autoreconnect_advance() {
 
         // jitter retry delay
-        if (self._retry_delay_jitter) {
-            self._retry_delay = util.rand_normal(self._retry_delay, self._retry_delay * self._retry_delay_jitter);
+        if (this._retry_delay_jitter) {
+            this._retry_delay = util.rand_normal(this._retry_delay, this._retry_delay * this._retry_delay_jitter);
         }
 
         // cap the retry delay
-        if (self._retry_delay > self._max_retry_delay) {
-            self._retry_delay = self._max_retry_delay;
+        if (this._retry_delay > this._max_retry_delay) {
+            this._retry_delay = this._max_retry_delay;
         }
 
         // count number of retries
-        self._retry_count += 1;
+        this._retry_count += 1;
 
         var res;
-        if (self._retry && (self._max_retries === -1 || self._retry_count <= self._max_retries)) {
+        if (this._retry && (this._max_retries === -1 || this._retry_count <= this._max_retries)) {
             res = {
-                count: self._retry_count,
-                delay: self._retry_delay,
+                count: this._retry_count,
+                delay: this._retry_delay,
                 will_retry: true
             };
         } else {
@@ -246,8 +236,8 @@ export default class Connection {
         }
 
         // retry delay growth for next retry cycle
-        if (self._retry_delay_growth) {
-            self._retry_delay = self._retry_delay * self._retry_delay_growth;
+        if (this._retry_delay_growth) {
+            this._retry_delay = this._retry_delay * this._retry_delay_growth;
         }
 
         return res;
@@ -255,24 +245,22 @@ export default class Connection {
 
     public open = () => {
 
-        var self = this;
-
-        if (self._transport) {
+        if (this._transport) {
             throw "connection already open (or opening)";
         }
 
-        self._autoreconnect_reset();
-        self._retry = true;
+        this._autoreconnect_reset();
+        this._retry = true;
 
-        function retry() {
+        let retry = () => {
 
             // create a WAMP transport
-            self._transport = self._create_transport();
+            this._transport = this._create_transport();
 
-            if (!self._transport) {
+            if (!this._transport) {
                 // failed to create a WAMP transport
-                self._retry = false;
-                if (self.onclose) {
+                this._retry = false;
+                if (this.onclose) {
                     var details = {
                         reason: null,
                         message: null,
@@ -280,32 +268,32 @@ export default class Connection {
                         retry_count: null,
                         will_retry: false
                     };
-                    self.onclose("unsupported", details);
+                    this.onclose("unsupported", details);
                 }
                 return;
             }
 
             // create a new WAMP session using the WebSocket connection as transport
-            self._session = new Session(self._transport, undefined, self._options.onchallenge);
-            self._session_close_reason = null;
-            self._session_close_message = null;
+            this._session = new Session(this._transport, undefined, this._options.onchallenge);
+            this._session_close_reason = null;
+            this._session_close_message = null;
 
-            self._transport.onopen = function() {
+            this._transport.onopen = () => {
 
                 // reset auto-reconnect timer and tracking
-                self._autoreconnect_reset();
+                this._autoreconnect_reset();
 
                 // log successful connections
-                self._connect_successes += 1;
+                this._connect_successes += 1;
 
                 // start WAMP session
-                self._session.join(self._options.realm, self._options.authmethods, self._options.authid);
+                this._session.join(this._options.realm, this._options.authmethods, this._options.authid);
             };
 
-            self._session.onjoin = function(details) {
-                if (self.onopen) {
+            this._session.onjoin = (details) => {
+                if (this.onopen) {
                     try {
-                        self.onopen(self._session, details);
+                        this.onopen(this._session, details);
                     } catch (e) {
                         log.debug("Exception raised from app code while firing Connection.onopen()", e);
                     }
@@ -316,25 +304,25 @@ export default class Connection {
             // ... WAMP session is now attached to realm.
             //
 
-            self._session.onleave = function(reason, details) {
-                self._session_close_reason = reason;
-                self._session_close_message = details.message || "";
-                self._retry = false;
-                self._transport.close(1000);
+            this._session.onleave = (reason, details) => {
+                this._session_close_reason = reason;
+                this._session_close_message = details.message || "";
+                this._retry = false;
+                this._transport.close(1000);
             };
 
-            self._transport.onclose = function(evt) {
+            this._transport.onclose = (evt) => {
 
                 // remove any pending reconnect timer
-                self._autoreconnect_reset_timer();
+                this._autoreconnect_reset_timer();
 
-                self._transport = null;
+                this._transport = null;
 
                 var reason = null;
-                if (self._connect_successes === 0) {
+                if (this._connect_successes === 0) {
                     reason = "unreachable";
-                    if (!self._retry_if_unreachable) {
-                        self._retry = false;
+                    if (!this._retry_if_unreachable) {
+                        this._retry = false;
                     }
 
                 } else if (!evt.wasClean) {
@@ -344,21 +332,21 @@ export default class Connection {
                     reason = "closed";
                 }
 
-                var next_retry = self._autoreconnect_advance();
+                var next_retry = this._autoreconnect_advance();
 
                 // fire app code handler
                 //
-                if (self.onclose) {
+                if (this.onclose) {
                     var details = {
-                        reason: self._session_close_reason,
-                        message: self._session_close_message,
+                        reason: this._session_close_reason,
+                        message: this._session_close_message,
                         retry_delay: next_retry.delay,
                         retry_count: next_retry.count,
                         will_retry: next_retry.will_retry
                     };
                     try {
                         // Connection.onclose() allows to cancel any subsequent retry attempt
-                        var stop_retrying = self.onclose(reason, details);
+                        var stop_retrying = this.onclose(reason, details);
                     } catch (e) {
                         log.debug("Exception raised from app code while firing Connection.onclose()", e);
                     }
@@ -366,22 +354,22 @@ export default class Connection {
 
                 // reset session info
                 //
-                if (self._session) {
-                    self._session = null;
-                    self._session_close_reason = null;
-                    self._session_close_message = null;
+                if (this._session) {
+                    this._session = null;
+                    this._session_close_reason = null;
+                    this._session_close_message = null;
                 }
 
                 // automatic reconnection
                 //
-                if (self._retry && !stop_retrying) {
+                if (this._retry && !stop_retrying) {
 
                     if (next_retry.will_retry) {
 
-                        self._is_retrying = true;
+                        this._is_retrying = true;
 
                         log.debug("retrying in " + next_retry.delay + " s");
-                        self._retry_timer = setTimeout(retry, next_retry.delay * 1000);
+                        this._retry_timer = setTimeout(retry, next_retry.delay * 1000);
 
                     } else {
                         log.debug("giving up trying to reconnect");
@@ -394,21 +382,19 @@ export default class Connection {
     }
 
     public close = (reason, message) => {
-        var self = this;
-
-        if (!self._transport && !self._is_retrying) {
+        if (!this._transport && !this._is_retrying) {
             throw "connection already closed";
         }
 
         // the app wants to close .. don't retry
-        self._retry = false;
+        this._retry = false;
 
-        if (self._session && self._session.isOpen) {
+        if (this._session && this._session.isOpen) {
             // if there is an open session, close that first.
-            self._session.leave(reason, message);
-        } else if (self._transport) {
+            this._session.leave(reason, message);
+        } else if (this._transport) {
             // no session active: just close the transport
-            self._transport.close(1000);
+            this._transport.close(1000);
         }
     }
 }
