@@ -19,6 +19,28 @@ import * as log from './log';
 import allTransports from './transports';
 import Session from './session/session';
 
+interface ITransport {
+    type: string;
+    url: string;
+    info: ITransportInfo;
+    protocol: string;
+    send: Function;
+    close: Function;
+    onmessage: Function;
+    onopen: Function;
+    onclose: Function;
+}
+
+interface ITransportInfo {
+    type: string;
+    url: string;
+    protocol: string;
+}
+
+interface ITransportFactory {
+    type: string;
+    create: () => ITransport;
+}
 
 export default class Connection {
 
@@ -34,11 +56,17 @@ export default class Connection {
         return !!this._transport;
     }
 
-    public get transport() {
+    public get transport(): ITransport {
         if (this._transport) {
             return this._transport;
         } else {
-            return { info: { type: 'none', url: null, protocol: null } };
+            return {
+                info: {
+                    type: 'none',
+                    url: null,
+                    protocol: null
+                }
+            } as any;
         }
     }
 
@@ -51,8 +79,8 @@ export default class Connection {
 
     private _options: any;
 
-    private _transport: any;
-    private _transport_factories = [];
+    private _transport: ITransport = null;
+    private _transport_factories: Array<ITransportFactory> = [];
 
     private _session: Session = null;
 
