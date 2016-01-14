@@ -11,6 +11,29 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+export interface ITransport {
+    type: string;
+    url: string;
+    info: ITransportInfo;
+    protocol: string;
+    send: Function;
+    close: Function;
+    onmessage: Function;
+    onopen: Function;
+    onclose: Function;
+}
+
+export interface ITransportInfo {
+    type: string;
+    url: string;
+    protocol: string;
+}
+
+export interface ITransportFactory {
+    type: string;
+    create: () => ITransport;
+}
+
 class Transports {
     private _repository = {};
 
@@ -39,22 +62,21 @@ class Transports {
     }
 }
 
-var _transports = new Transports();
+export var transports = new Transports();
 
 // register default transports
 try {
     var websocket = require('./transport/websocket');
-    _transports.register("websocket", websocket.Factory);
+    transports.register("websocket", websocket.Factory);
 } catch (err) { };
 
 try {
     var longpoll = require('./transport/longpoll');
-    _transports.register("longpoll", longpoll.Factory);
+    transports.register("longpoll", longpoll.Factory);
 } catch (err) { };
 
 try {
     var rawsocket = require('./transport/rawsocket');
-    _transports.register("rawsocket", rawsocket.Factory);
+    transports.register("rawsocket", rawsocket.Factory);
 } catch (err) { };
 
-export default _transports;

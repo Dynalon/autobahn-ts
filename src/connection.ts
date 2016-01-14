@@ -16,31 +16,9 @@ declare var Promise;
 import * as when from 'when';
 import * as util from './util';
 import * as log from './log';
-import allTransports from './transports';
+import {transports as allTransports} from './transports';
 import Session from './session/session';
-
-interface ITransport {
-    type: string;
-    url: string;
-    info: ITransportInfo;
-    protocol: string;
-    send: Function;
-    close: Function;
-    onmessage: Function;
-    onopen: Function;
-    onclose: Function;
-}
-
-interface ITransportInfo {
-    type: string;
-    url: string;
-    protocol: string;
-}
-
-interface ITransportFactory {
-    type: string;
-    create: () => ITransport;
-}
+import {ITransport, ITransportInfo, ITransportFactory} from './transports';
 
 export default class Connection {
 

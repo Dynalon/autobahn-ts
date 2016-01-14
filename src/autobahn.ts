@@ -25,7 +25,7 @@ if ('AUTOBAHN_DEBUG' in global && AUTOBAHN_DEBUG) {
 var pjson = require('../package.json');
 export var version = pjson.version;
 export { default as Connection } from './connection';
-export { default as transports } from './transports';
+export { transports as transports } from './transports';
 export { default as Session } from './session/session';
 export { default as Result } from './session/result';
 export { default as Error } from './session/error';

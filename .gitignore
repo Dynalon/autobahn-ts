@@ -3,6 +3,7 @@ build
 node_modules
 typings
 npm-*.log
+.tscache
 *.swp
 *.log
 *.pyc
