@@ -5,6 +5,7 @@
   "main": "index.js",
   "browser": {
     "./src/transport/rawsocket": false,
+    "./src/transport/websocket/websocket-node": false,
     "ws": false,
     "crypto-js": false
   },
