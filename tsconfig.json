@@ -4,6 +4,7 @@
     "src/connection.ts",
     "src/util.ts",
     "src/transports.ts",
+    "src/transport/websocket.ts",
     "src/session/session.ts",
     "src/compat.d.ts",
     "typings/main.d.ts"
