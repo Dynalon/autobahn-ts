@@ -4,7 +4,9 @@
     "src/connection.ts",
     "src/util.ts",
     "src/transports.ts",
-    "src/transport/websocket.ts",
+    "src/transport/websocket/websocket.ts",
+    "src/transport/websocket/websocket-node.ts",
+    "src/transport/websocket/websocket-browser.ts",
     "src/session/session.ts",
     "src/compat.d.ts",
     "typings/main.d.ts"

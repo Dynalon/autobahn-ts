@@ -5,4 +5,4 @@ connection.js
 util.js
 log.js
 session/**/*.js
-transport/websocket.js
+transport/websocket/*.js

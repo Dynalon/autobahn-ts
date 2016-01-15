@@ -66,7 +66,7 @@ export var transports = new Transports();
 
 // register default transports
 try {
-    var websocket = require('./transport/websocket');
+    var websocket = require('./transport/websocket/websocket');
     transports.register("websocket", websocket.Factory);
 } catch (err) { };
 
