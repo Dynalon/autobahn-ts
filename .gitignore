@@ -1,7 +1,7 @@
 *.sublime-workspace
 build
 node_modules
-typings
+typings/
 npm-*.log
 .tscache
 *.swp

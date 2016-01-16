@@ -34,7 +34,7 @@ export interface ITransportFactory {
     create: () => ITransport;
 }
 
-class Transports {
+export class Transports {
     private _repository = {};
 
     register(name: string, factory) {

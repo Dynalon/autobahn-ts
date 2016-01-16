@@ -11,10 +11,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-var autobahn = require('./../index.js');
-var fs = require("fs");
-var when = require("when");
-
+import * as fs from "fs";
+import * as when from "when";
+import * as autobahn from "../src/autobahn";
 /*
 // fully qualified config
 var config = {
@@ -35,7 +34,7 @@ var config = {
    realm: 'realm1'
 }
 
-function connect_n(n) {
+export function connect_n(n) {
    var dl = [];
    for (var i = 0; i < n; ++i) {
       (function (idx) {
@@ -55,7 +54,7 @@ function connect_n(n) {
 }
 
 
-var Testlog = function (filename) {
+export var Testlog = function (filename) {
 
    var self = this;
 
@@ -80,8 +79,8 @@ Testlog.prototype.stringify = function () {
    var s = '';
    for (var i = 0; i < self._log.length; ++i) {
       s += i;
-      args = self._log[i];
-      for (arg in args) {
+      let args = self._log[i];
+      for (let arg in args) {
 
          // stringify with dict attributes ordered
          s += ' ' + self.stringifyWithOrderedKeys(args[arg]);
@@ -140,6 +139,3 @@ Testlog.prototype.check = function () {
 };
 
 
-exports.Testlog = Testlog;
-exports.config = config;
-exports.connect_n = connect_n;

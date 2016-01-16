@@ -11,6 +11,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+var WebSocket = require('ws'); // https://github.com/einaros/ws
 
 import * as util from "../../util";
 import * as log from "../../log";
@@ -59,7 +60,6 @@ export class Factory implements ITransportFactory {
             protocol: 'wamp.2.json'
         };
 
-        var WebSocket = require('ws'); // https://github.com/einaros/ws
         var websocket;
 
         var protocols;

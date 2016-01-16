@@ -93,7 +93,7 @@ export default class Connection {
     private _is_rerying: boolean = false;
 
     // when retrying, this is the timer object returned from window.setTimeout()
-    private _retry_timer: number = null;
+    private _retry_timer: any = null;
 
     constructor(options: any) {
         this._options = options || {};

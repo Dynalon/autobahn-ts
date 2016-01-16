@@ -8,11 +8,11 @@
     "src/transport/websocket/websocket-node.ts",
     "src/transport/websocket/websocket-browser.ts",
     "src/session/session.ts",
-    "src/compat.d.ts",
     "typings/main.d.ts"
   ],
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es5"
+    "target": "es5",
+    "declaration": false
   }
 }

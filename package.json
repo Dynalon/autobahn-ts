@@ -10,7 +10,10 @@
     "crypto-js": false
   },
   "scripts": {
-    "test": "nodeunit test/test.js",
+    "test": "npm run build-test && npm run run-test",
+    "run-test": "mocha test/test_mocha.js",
+    "build-test": "tsc -p test",
+    "watch-test": "tsc --watch -p test",
     "postinstall": "npm run typings",
     "tsc": "tsc",
     "typings": "typings install",
@@ -22,7 +25,9 @@
   "devDependencies": {
     "browserify": "^12.0.1",
     "bufferutil": "^1.2.1",
+    "chai": "^3.4.1",
     "crypto-js": ">= 3.1.5",
+    "mocha": "^2.3.4",
     "nodeunit": "^0.9.1",
     "typescript": "^1.7.5",
     "typings": "^0.4.1",

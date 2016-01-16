@@ -1,5 +1,6 @@
 {
   "ambientDependencies": {
-    "when": "github:DefinitelyTyped/DefinitelyTyped/when/when.d.ts#cfc3e22a3d3e373903c8a4db515014ede84f9deb"
+    "when": "github:DefinitelyTyped/DefinitelyTyped/when/when.d.ts#cfc3e22a3d3e373903c8a4db515014ede84f9deb",
+    "custom": "file:custom.d.ts"
   }
 }
