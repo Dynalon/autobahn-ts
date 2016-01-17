@@ -13,7 +13,7 @@
 
 import * as autobahn from '../src/autobahn';
 import './test_connect';
-// var rpc_complex = require('./test_rpc_complex.js');
+import './test_rpc_complex';
 // var rpc_arguments = require('./test_rpc_arguments.js');
 // var rpc_error = require('./test_rpc_error.js');
 // var rpc_options = require('./test_rpc_options.js');

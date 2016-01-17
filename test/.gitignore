@@ -1,5 +1,6 @@
 #files already moved to .ts, ignore their compiled output
 test_connect.js
 test_mocha.js
+test_rpc_complex.js
 testutil.js
 typings/

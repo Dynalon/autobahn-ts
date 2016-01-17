@@ -1031,7 +1031,7 @@ export default class Session {
     }
 
 
-    leave(reason, message) {
+    leave(reason?: string, message?: string) {
 
         util.assert(!reason || typeof reason === 'string', "Session.leave: <reason> must be a string");
         util.assert(!message || typeof message === 'string', "Session.leave: <message> must be a string");

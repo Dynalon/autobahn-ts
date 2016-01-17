@@ -29,7 +29,7 @@ var config = {
 */
 
 // shortcut config
-var config = {
+export var config = {
    url: 'ws://127.0.0.1:8080/ws',
    realm: 'realm1'
 }
