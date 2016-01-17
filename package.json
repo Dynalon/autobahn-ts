@@ -19,7 +19,7 @@
     "typings": "typings install && cd test && typings install",
     "watch": "tsc -p src --watch",
     "minify": "uglifyjs -o dist/browser/autobahn.min.js dist/browser/autobahn.js",
-    "bundle": "browserify dist/autobahn.js --standalone autobahn -o dist/browser/autobahn.js",
+    "bundle": "browserify src/autobahn.js --standalone autobahn -o dist/browser/autobahn.js",
     "build": "npm run build-src && npm run bundle && npm run minify"
   },
   "devDependencies": {

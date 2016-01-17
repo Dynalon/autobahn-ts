@@ -1,8 +1,7 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es5",
-    "outDir": "../dist/test"
+    "target": "es5"
   },
   "exclude": [
     "typings"

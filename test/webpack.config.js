@@ -1,4 +1,4 @@
-export default {
+module.exports = {
     entry: 'mocha!./test_mocha.js',
     output: {
         path: __dirname,
