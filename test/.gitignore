@@ -3,5 +3,6 @@ test_connect.js
 test_mocha.js
 test_rpc_complex.js
 test_rpc_arguments.js
+test_rpc_error.js
 testutil.js
 typings/

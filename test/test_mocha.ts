@@ -17,8 +17,8 @@ import './test_connect';
 describe('RPC', () => {
     require('./test_rpc_complex');
     require('./test_rpc_arguments');
+    require('./test_rpc_error');
 });
-// var rpc_error = require('./test_rpc_error.js');
 // var rpc_options = require('./test_rpc_options.js');
 // var rpc_progress = require('./test_rpc_progress.js');
 // var rpc_slowsquare = require('./test_rpc_slowsquare.js');
