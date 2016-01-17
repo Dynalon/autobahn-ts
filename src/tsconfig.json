@@ -2,9 +2,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es5",
-    "outDir": "../dist/test"
-  },
-  "exclude": [
-    "typings"
-  ]
+    "outDir": "../dist",
+    "declaration": false
+  }
 }

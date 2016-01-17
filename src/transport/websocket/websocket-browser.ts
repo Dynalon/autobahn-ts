@@ -62,21 +62,22 @@ export class Factory implements ITransportFactory {
         var websocket;
 
         // Chrome, MSIE, newer Firefox
+        // TODO: At least Chrome does not expose a "global" variable anymore?
         if ("WebSocket" in global) {
 
             if (self._options.protocols) {
-                websocket = new global.WebSocket(self._options.url, self._options.protocols);
+                websocket = new (global as any).WebSocket(self._options.url, self._options.protocols);
             } else {
-                websocket = new global.WebSocket(self._options.url);
+                websocket = new (global as any).WebSocket(self._options.url);
             }
 
             // older versions of Firefox prefix the WebSocket object
         } else if ("MozWebSocket" in global) {
 
             if (self._options.protocols) {
-                websocket = new global.MozWebSocket(self._options.url, self._options.protocols);
+                websocket = new (global as any).MozWebSocket(self._options.url, self._options.protocols);
             } else {
-                websocket = new global.MozWebSocket(self._options.url);
+                websocket = new (global as any).MozWebSocket(self._options.url);
             }
         } else {
             throw "browser does not support WebSocket or WebSocket in Web workers";

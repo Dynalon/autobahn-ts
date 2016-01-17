@@ -1,8 +1,2 @@
 # files we already moved to *.ts will output as *.js file, ignore those
-autobahn.js
-transports.js
-connection.js
-util.js
-log.js
-session/**/*.js
-transport/websocket/*.js
+**/*.js

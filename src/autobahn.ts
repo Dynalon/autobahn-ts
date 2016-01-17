@@ -11,6 +11,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+// reference the typings
+/// <reference path="../typings/main.d.ts" />
+
 // Polyfills for <= IE9
 require('./polyfill.js');
 
@@ -22,8 +25,8 @@ if ('AUTOBAHN_DEBUG' in global && AUTOBAHN_DEBUG) {
    }
 }
 
-var pjson = require('../package.json');
-export var version = pjson.version;
+// var pjson = require('../package.json');
+// export var version = pjson.version;
 export { default as Connection } from './connection';
 export { transports as transports } from './transports';
 export { default as Session } from './session/session';

@@ -1,5 +1,6 @@
 *.sublime-workspace
 build
+dist/
 node_modules
 typings/
 npm-*.log

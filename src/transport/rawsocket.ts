@@ -12,137 +12,124 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 
-var util = require('../util.js');
-var log = require('../log.js');
+import * as util from '../util';
+import * as log from '../log';
+import * as when from 'when';
+import { ITransport } from '../transports';
+import { EventEmitter } from 'events';
 
-var EventEmitter = require('events').EventEmitter;
+export class Factory {
+
+    public type = "rawsocket";
+    private _options: any;
+
+    constructor(options) {
+        var self = this;
+
+        if (!options.protocols) {
+            options.protocols = ['wamp.2.json'];
+        } else {
+            util.assert(Array.isArray(options.protocols), "options.protocols must be an array");
+        }
+
+        options.rawsocket_max_len_exp = options.rawsocket_max_len_exp || 24;
+
+        self._options = options;
+    }
+
+    public create = () => {
+
+        var self = this;
+
+        // the WAMP transport we create
+        var transport = {} as ITransport;
+
+        // these will get defined further below
+        transport.protocol = undefined;
+        transport.send = undefined;
+        transport.close = undefined;
+
+        // these will get overridden by the WAMP session using this transport
+        transport.onmessage = function() { };
+        transport.onopen = function() { };
+        transport.onclose = function() { };
+
+        transport.info = {
+            type: 'rawsocket',
+            url: null,
+            protocol: 'wamp.2.json'
+        };
 
 
-function Factory (options) {
-   var self = this;
+        var net = require('net');
+        var socket, protocol;
 
-   if (!options.protocols) {
-      options.protocols = ['wamp.2.json'];
-   } else {
-      util.assert(Array.isArray(options.protocols), "options.protocols must be an array");
-   }
-
-   options.rawsocket_max_len_exp = options.rawsocket_max_len_exp || 24;
-
-   self._options = options;
-}
-
-
-Factory.prototype.type = "rawsocket";
-
-
-Factory.prototype.create = function () {
-
-   var self = this;
-
-   // the WAMP transport we create
-   var transport = {};
-
-   // these will get defined further below
-   transport.protocol = undefined;
-   transport.send = undefined;
-   transport.close = undefined;
-
-   // these will get overridden by the WAMP session using this transport
-   transport.onmessage = function () {};
-   transport.onopen = function () {};
-   transport.onclose = function () {};
-
-   transport.info = {
-      type: 'rawsocket',
-      url: null,
-      protocol: 'wamp.2.json'
-   };
-
-
-   // Test below used to be via the 'window' object in the browser.
-   // This fails when running in a Web worker.
-   //
-   // running in Node.js
-   //
-   if (global.process && global.process.versions.node) {
-
-      (function () {
-         var net = require('net');
-         var socket, protocol;
-
-         // Create the options object to initiate the connection
-         if (self._options.path) {
+        // Create the options object to initiate the connection
+        let connectionOptions: any;
+        if (self._options.path) {
             connectionOptions = {
-               path: self._options.path,
-               allowHalfOpen: true
+                path: self._options.path,
+                allowHalfOpen: true
             };
-         } else if (self._options.port) {
+        } else if (self._options.port) {
             connectionOptions = {
-               port: self._options.port || 8000,
-               host: self._options.host || 'localhost',
-               allowHalfOpen: true
+                port: self._options.port || 8000,
+                host: self._options.host || 'localhost',
+                allowHalfOpen: true
             };
-         } else {
+        } else {
             throw "You must specify a host/port combination or a unix socket path to connect to";
-         }
+        }
 
-         // Open a TCP socket and setup the protocol
-         socket = net.connect(connectionOptions);
-         protocol = new Protocol(socket, {
+        // Open a TCP socket and setup the protocol
+        socket = net.connect(connectionOptions);
+        protocol = new Protocol(socket, {
             serializer: 'json',
             max_len_exp: self._options.rawsocket_max_len_exp
-         });
+        });
 
-         // Relay connect event to the onopen transport handler
-         protocol.on('connect', function (msg) {
+        // Relay connect event to the onopen transport handler
+        protocol.on('connect', function(msg) {
             log.debug('RawSocket transport negociated');
             transport.onopen(msg);
-         });
+        });
 
-         // Relay data event to the onmessage transport handler
-         protocol.on('data', function (msg) {
+        // Relay data event to the onmessage transport handler
+        protocol.on('data', function(msg) {
             log.debug('RawSocket transport received', msg);
             transport.onmessage(msg);
-         });
+        });
 
-         // Relay the close event to the onclose transport handler
-         protocol.on('close', function (had_error) {
+        // Relay the close event to the onclose transport handler
+        protocol.on('close', function(had_error) {
             log.debug('RawSocket transport closed');
             transport.onclose({
-               code: 999,
-               reason: '',
-               wasClean: !had_error
+                code: 999,
+                reason: '',
+                wasClean: !had_error
             });
-         });
+        });
 
-         // Log errors
-         protocol.on('error', function (error) {
+        // Log errors
+        protocol.on('error', function(error) {
             log.debug('RawSocket transport error', error);
-         });
+        });
 
-         // Relay close call
-         transport.close = function (code, reason) {
+        // Relay close call
+        transport.close = function(code, reason) {
             log.debug('RawSocket transport closing', code, reason);
             protocol.close();
-         };
+        };
 
-         // Relay send call
-         transport.send = function (msg) {
+        // Relay send call
+        transport.send = function(msg) {
             log.debug('RawSocket transport sending', msg);
             protocol.write(msg);
-         };
+        };
 
-      })();
-   //
-   // running in the browser
-   //
-   } else {
-      throw "No RawSocket support in browser";
-   }
-
-   return transport;
-};
+        return transport;
+    }
+}
 
 /**
  *  Protocol constructor
@@ -183,16 +170,16 @@ function Protocol (stream, options) {
       'Message length out of bounds [9, 36]: '+ this._options.max_len_exp);
 
    util.assert(!this._options.autoping ||
-      (Number.isInteger(this._options.autoping) && this._options.autoping >= 0),
+      ((Number as any).isInteger(this._options.autoping) && this._options.autoping >= 0),
       'Autoping interval must be positive');
 
    util.assert(!this._options.ping_timeout ||
-      (Number.isInteger(this._options.ping_timeout) &&
+      ((Number as any).isInteger(this._options.ping_timeout) &&
          this._options.ping_timeout >= 0),
       'Ping timeout duration must be positive');
 
    util.assert(!this._options.packet_timeout ||
-      (Number.isInteger(this._options.packet_timeout) &&
+      ((Number as any).isInteger(this._options.packet_timeout) &&
          this._options.packet_timeout >= 0),
       'Packet timeout duration must be positive');
 
@@ -347,7 +334,7 @@ Protocol.prototype.ping = function (payload) {
    payload = payload || 255;
 
    // Generate a random payload if none provided
-   if (Number.isInteger(payload)) {
+   if ((Number as any).isInteger(payload)) {
       var base = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'+
                  '0123456789&~"#\'{([-|`_\\^@)]=},?;.:/!*$<>';
       var len = Math.max(1, payload);
@@ -594,7 +581,7 @@ Protocol.prototype._handleHeaderPacket = function (int32) {
 
       default:
          this._emitter.emit('error', new ProtocolError(
-            'Invalid frame type: 0x' + status.toString(16))
+            'Invalid frame type: 0x' + type.toString(16))
          );
          return this.close();
    }
@@ -679,16 +666,13 @@ Protocol.prototype.removeListener = function (evt, handler) {
 /**
  * ProtocolError type
  */
-var ProtocolError = exports.ProtocolError = function (msg) {
+export var ProtocolError = function (msg) {
    Error.apply(this, Array.prototype.splice.call(arguments));
 
-   Error.captureStackTrace(this, this.constructor);
+   (Error as any).captureStackTrace(this, this.constructor);
 
    this.message = msg;
    this.name = 'ProtocolError';
 };
 ProtocolError.prototype = Object.create(Error.prototype);
 
-
-exports.Factory = Factory;
-exports.Protocol = Protocol;
