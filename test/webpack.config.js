@@ -9,5 +9,13 @@ module.exports = {
     // available during runtime, the loading will fail.
     externals: {
         'net': true
+    },
+    module: {
+        loaders: [
+            {
+                test: /\.json$/,
+                loader: 'json'
+            }
+        ]
     }
-}
+};
