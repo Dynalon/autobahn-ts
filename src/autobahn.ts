@@ -14,9 +14,6 @@
 // reference the typings
 /// <reference path="../typings/main.d.ts" />
 
-// Polyfills for <= IE9
-require('./polyfill.js');
-
 if ('AUTOBAHN_DEBUG' in global && AUTOBAHN_DEBUG) {
    // https://github.com/cujojs/when/blob/master/docs/api.md#whenmonitor
    require('when/monitor/console');

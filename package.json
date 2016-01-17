@@ -2,7 +2,7 @@
   "name": "autobahnTS",
   "version": "0.9.9",
   "description": "An implementation of The Web Application Messaging Protocol (WAMP).",
-  "main": "index.js",
+  "main": "dist/autobahn.js",
   "browser": {
     "./src/transport/rawsocket": false,
     "./src/transport/websocket/websocket-node": false,
@@ -15,12 +15,12 @@
     "build-test": "tsc -p test && cd test/ && webpack --config webpack.config.js",
     "watch-test": "tsc --watch -p test",
     "postinstall": "npm run typings",
-    "tsc": "tsc -p src",
-    "typings": "typings install",
+    "build-src": "tsc -p src",
+    "typings": "typings install && cd test && typings install",
     "watch": "tsc -p src --watch",
     "minify": "uglifyjs -o dist/browser/autobahn.min.js dist/browser/autobahn.js",
-    "bundle": "browserify src/autobahn.js --standalone autobahn -o dist/browser/autobahn.js",
-    "build": "npm run tsc && npm run bundle && npm run minify"
+    "bundle": "browserify dist/autobahn.js --standalone autobahn -o dist/browser/autobahn.js",
+    "build": "npm run build-src && npm run bundle && npm run minify"
   },
   "devDependencies": {
     "browserify": "^12.0.1",
