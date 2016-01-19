@@ -8,7 +8,8 @@ module.exports = {
     // If the modules that are external are not surrounded in a try/catch and the modules are not
     // available during runtime, the loading will fail.
     externals: {
-        'net': true
+        'net': true,
+        'fs': true
     },
     module: {
         loaders: [
