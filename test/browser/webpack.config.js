@@ -1,8 +1,8 @@
 module.exports = {
-    entry: 'mocha!./test_mocha.js',
+    entry: 'mocha!../test_mocha.js',
     output: {
         path: __dirname,
-        filename: '../browser-test/tests.js'
+        filename: './tests.js'
     },
     // what modules should not be included but be considered 'external' to the bundle.
     // If the modules that are external are not surrounded in a try/catch and the modules are not

@@ -126,10 +126,16 @@ export class Testlog {
         var self = this;
         var slog = self.stringify();
 
-        if (global === undefined) {
+        if (typeof window !== "undefined") {
             // running in browser, fetch log via synchronous ajax
             let xhr = new XMLHttpRequest();
-            xhr.open("GET", self._filename, false);
+            let filename;
+            if (self._filename.substr(0,5) === "test/") {
+                filename = self._filename.substr(4);
+            } else {
+                filename = "/" + self._filename;
+            }
+            xhr.open("GET", filename, false);
             xhr.send(null);
             let slog_baseline = xhr.responseText;
             if (slog != slog_baseline) {

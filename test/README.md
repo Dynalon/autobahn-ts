@@ -1,46 +1,22 @@
 # Tests for AutobahnJS functionality
 
-Tests run using NodeJS and the nodeunit package.
+Tests run using NodeJS and in the browser using the mocha unittesting framework.
 
-First, ensure that a Crossbar instance is running with the default configuration (use `crossbar init` if needed).
+For both setups, ensure that a Crossbar instance is running on localhost:8080 
+with the default configuration (use `crossbar init` if needed).
 
-Then, open a terminal and run `npm test` in the `package` directory.
+# Testing with NodeJS
 
-## First run
+Open a terminal and run `npm test` (after having run npm install of course).
 
-* You need to have NodeJS installed.
-* Run `npm install` in the `package directory`
+# Testing in the browser
 
-If all assertions fail, this may be because of different line ending formats for the created test_*.txt files.
-In this case you need to remove the files and create a known good set of files on your system!
+Build the tests:
 
-Here is a successful testrun:
+    npm run build-test
 
-```console
-oberstet@thinkpad-t430s:~/scm/autobahn/AutobahnJS/package$ npm test
+Start a webserver (i.e. http-server, npm install -g http-server) in the test/ directory:
 
-> autobahn@0.9.7 test /home/oberstet/scm/autobahn/AutobahnJS/package
-> nodeunit test/test.js
+    http-server -c-1 -p 10102
 
-
-test.js
-✔ testConnect
-✔ testRpcArguments
-✔ testRpcComplex
-✔ testRpcError
-✔ testRpcOptions
-✔ testRpcProgress
-✔ testRpcSlowsquare
-✔ testRpcRouting
-✔ testRpcCallerDiscloseMe
-✔ testPubsubBasic
-✔ testPubsubComplex
-✔ testPubsubOptions
-✔ testPubsubExcludeMe
-✔ testPubsubExclude
-✔ testPubsubPrefixSub
-✔ testPubsubWildcardSub
-✔ testPubsubPublisherDiscloseMe
-
-OK: 25 assertions (9444ms)
-```
+Point your browser at `http://localhost:10102/browser/index.html` to run the tests

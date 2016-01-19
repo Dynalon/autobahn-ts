@@ -12,7 +12,7 @@
   "scripts": {
     "test": "npm run build-test && npm run run-test",
     "run-test": "mocha test/test_mocha.js",
-    "build-test": "tsc -p test && cd test/ && webpack --config webpack.config.js",
+    "build-test": "tsc -p test && cd test/browser/ && mocha init . && webpack --config webpack.config.js",
     "watch-test": "tsc --watch -p test",
     "postinstall": "npm run typings",
     "build-src": "tsc -p src",
