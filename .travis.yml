@@ -6,9 +6,14 @@ install:
   - npm install
 
 script:
+
+  # compile main source
   - npm run build
 
-  # for tests, we'd need a crossbario instance :(
+  # compile and pack tests
+  - npm run build-test
+
+  # for running tests, we'd need a crossbario instance :(
   # - npm test
 
 # uncomment this line if your project needs to run something other than `rake`:
