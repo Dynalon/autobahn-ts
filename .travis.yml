@@ -1,18 +1,27 @@
-sudo: true
+sudo: false
 language: javascript
 
+addons:
+  apt:
+    packages:
+    - build-essential
+    - libssl-dev
+    - libffi-dev
+    - libreadline-dev
+    - libbz2-dev
+    - libsqlite3-dev
+    - libncurses5-dev
+    - python
+    - libpython-dev
+    - python-virtualenv
+    - pip
+ 
 install:
   # newer npm spinner is just a pain and will mess up in the logfiles
   - npm config set spin=false
   - npm install
 
 after_install:
-  # Build essentials
-  - sudo apt-get installl build-essential libssl-dev libffi-dev libreadline-dev libbz2-dev libsqlite3-dev libncurses5-dev
-
-  # Python deps
-  - sudo apt-get install python libpython-dev python-virtualenv pip 
-
   # setup virtualenv
   - mkdir crossbar
   - virtualenv crossbar
