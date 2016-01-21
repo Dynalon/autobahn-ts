@@ -14,7 +14,7 @@ addons:
     - python
     - libpython-dev
     - python-virtualenv
-    - pip
+    - python-pip
 
  
 install:
