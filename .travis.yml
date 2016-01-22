@@ -12,7 +12,7 @@ addons:
     - libsqlite3-dev
     - libncurses5-dev
     - python
-    - libpython-dev
+    - libpython-all-dev
     - python-virtualenv
     - python-pip
 
