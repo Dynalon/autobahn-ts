@@ -18,12 +18,13 @@ describe('RPC', () => {
     require('./test_rpc_complex');
     require('./test_rpc_arguments');
     require('./test_rpc_error');
+    require('./test_rpc_options');
+    require('./test_rpc_progress');
+    require('./test_rpc_slowsquare');
+    require('./test_rpc_routing');
+    require('./test_rpc_caller_disclose_me');
 });
-// var rpc_options = require('./test_rpc_options.js');
-// var rpc_progress = require('./test_rpc_progress.js');
-// var rpc_slowsquare = require('./test_rpc_slowsquare.js');
-// var rpc_routing = require('./test_rpc_routing.js');
-// var rpc_caller_disclose_me = require('./test_rpc_caller_disclose_me.js');
+
 // var pubsub_basic = require('./test_pubsub_basic.js');
 // var pubsub_unsubscribe = require('./test_pubsub_unsubscribe.js');
 // var pubsub_complex = require('./test_pubsub_complex.js');
