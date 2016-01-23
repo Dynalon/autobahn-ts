@@ -32,6 +32,9 @@ before_script:
   - pip install -U pip wheel setuptools
   - pip install crossbar[all]
   - popd
+  - pushd crossbar_testserver
+  - crossbar start &
+  - popd
 
 script:
 
