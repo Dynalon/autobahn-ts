@@ -29,6 +29,7 @@ before_script:
   - mkdir crossbar
   - virtualenv crossbar
   - cd crossbar && source bin/activate
+  - pip install -U pip wheel setuptools
   - pip install crossbar[all]
 
 script:
