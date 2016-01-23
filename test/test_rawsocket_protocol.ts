@@ -1,17 +1,16 @@
 var stream = require('stream');
 var rawsocket = require('./../src/transport/rawsocket.js');
 
-
 /**
  * The protocol must handle a valid handshake exchange
  */
-module.exports = {
+export default {
    testValidHandshake: function (testcase) {
       // Make a X wire: what is written on wire.tx will be read by wire.rx and
       // vice-versa
       var wire = makeXWire();
 
-      testcase.expect(3);
+      // testcase.expect(3);
 
       var machine = new StateMachine({
          // Mock connection opening and wait for handshake
@@ -614,7 +613,7 @@ function makeXWire () {
  * This is a helper for use with the StateMachine object to facilitate RawSocket
  * protocol testing.
  */
-function replyWithValidHandshake (connection, transitionTo, delay) {
+function replyWithValidHandshake (connection, transitionTo, delay?) {
    return function () {
       var self = this;
       setTimeout(function () {
@@ -671,7 +670,7 @@ function randomString (len) {
  *
  * Pass `console.log` as a second argument to debug successive states
  */
-function StateMachine(states, log) {
+function StateMachine(states, log?) {
    this._states = states;
    this._state = null;
    this.log = log || function () {};

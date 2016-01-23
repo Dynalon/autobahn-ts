@@ -25,35 +25,15 @@ describe('RPC', () => {
     require('./test_rpc_caller_disclose_me');
 });
 
-// var pubsub_basic = require('./test_pubsub_basic.js');
-// var pubsub_unsubscribe = require('./test_pubsub_unsubscribe.js');
-// var pubsub_complex = require('./test_pubsub_complex.js');
-// var pubsub_options = require('./test_pubsub_options.js');
-// var pubsub_excludme = require('./test_pubsub_excludeme.js');
-// var pubsub_exclude = require('./test_pubsub_exclude.js');
-// var pubsub_eligible = require('./test_pubsub_eligible.js');
-// var pubsub_prefix_sub = require('./test_pubsub_prefix_sub.js');
-// var pubsub_wildcard_sub = require('./test_pubsub_wildcard_sub.js');
-// var pubsub_publisher_disclose_me = require('./test_pubsub_publisher_disclose_me.js');
-
-
-// exports.testConnect = connect.testConnect;
-// exports.testRpcArguments = rpc_arguments.testRpcArguments;
-// exports.testRpcComplex = rpc_complex.testRpcComplex;
-// exports.testRpcError = rpc_error.testRpcError;
-// exports.testRpcOptions = rpc_options.testRpcOptions;
-// exports.testRpcProgress = rpc_progress.testRpcProgress;
-// exports.testRpcSlowsquare = rpc_slowsquare.testRpcSlowsquare;
-// exports.testRpcRouting = rpc_routing.testRpcRouting;
-// exports.testRpcCallerDiscloseMe = rpc_caller_disclose_me.testRpcCallerDiscloseMe;
-// exports.testPubsubBasic = pubsub_basic.testPubsubBasic;
-// exports.testPubsubUnsubscribe = pubsub_unsubscribe.testPubSubUnsubscribe;
-// exports.testPubsubComplex = pubsub_complex.testPubsubComplex;
-// exports.testPubsubOptions = pubsub_options.testPubsubOptions;
-// exports.testPubsubExcludeMe = pubsub_excludme.testPubsubExcludeMe;
-// exports.testPubsubExclude = pubsub_exclude.testPubsubExclude;
-// exports.testPubsubEligible = pubsub_eligible.testPubsubEligible;
-// exports.testPubsubPrefixSub = pubsub_prefix_sub.testPubsubPrefixSub;
-// exports.testPubsubWildcardSub = pubsub_wildcard_sub.testPubsubWildcardSub;
-// exports.testPubsubPublisherDiscloseMe = pubsub_publisher_disclose_me.testPubsubPublisherDiscloseMe;
-
+describe('PubSub', () => {
+    require('./test_pubsub_basic.js');
+    require('./test_pubsub_unsubscribe.js');
+    require('./test_pubsub_complex.js');
+    require('./test_pubsub_options.js');
+    require('./test_pubsub_excludeme.js');
+    require('./test_pubsub_exclude.js');
+    require('./test_pubsub_eligible.js');
+    require('./test_pubsub_prefix_sub.js');
+    require('./test_pubsub_wildcard_sub.js');
+    require('./test_pubsub_publisher_disclose_me.js');
+});

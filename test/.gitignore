@@ -1,17 +1,2 @@
-
-#files already moved to .ts, ignore their compiled output
-test_connect.js
-test_mocha.js
-
-test_rpc_complex.js
-test_rpc_arguments.js
-test_rpc_error.js
-test_rpc_options.js
-test_rpc_progress.js
-test_rpc_slowsquare.js
-test_rpc_error.js
-test_rpc_routing.js
-test_rpc_caller_disclose_me.js
-
-testutil.js
+*.js
 typings/

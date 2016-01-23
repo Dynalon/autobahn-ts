@@ -2,12 +2,13 @@
 
 Tests run using NodeJS and in the browser using the mocha unittesting framework.
 
-For both setups, ensure that a Crossbar instance is running on localhost:8080 
-with the default configuration (use `crossbar init` if needed).
+For both setups, ensure that a Crossbar instance using the crossbar_testserver config in the
+project root folder is running on localhost:8080 .
 
 # Testing with NodeJS
 
 Open a terminal and run `npm test` (after having run npm install of course).
+(this will perform npm run build-test and npm run run-test).
 
 # Testing in the browser
 

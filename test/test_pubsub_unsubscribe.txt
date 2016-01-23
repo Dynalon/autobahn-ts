@@ -2,3 +2,4 @@
 1 "publishing to topic 'com.myapp.topic1': Hello world!"
 2 "Got event:" "Hello world!"
 3 "Unsubscribing..."
+4 "publishing to topic 'com.myapp.topic1': Hello world!"
