@@ -12,9 +12,6 @@ addons:
     - libsqlite3-dev
     - libncurses5-dev
     - python
-
-    # For some reason this package fails
-    # - libpython-dev
     - python-virtualenv
     - python-pip
 
@@ -43,9 +40,7 @@ script:
 
   # compile and pack tests
   - npm run build-test
-
-  # for running tests, we'd need a crossbario instance :(
-  # - npm test
+  - npm test
 
 # uncomment this line if your project needs to run something other than `rake`:
 # script: bundle exec rspec spec
