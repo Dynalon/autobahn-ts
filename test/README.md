@@ -16,8 +16,12 @@ Build the tests:
 
     npm run build-test
 
-Start a webserver (i.e. http-server, npm install -g http-server) in the test/ directory:
+Start crossbar with the crossbar_testserver configuration in the root of this project,
+which will not only start the required crossbar broker instance, but also a static
+webserver that serves the tests html files.
 
-    http-server -c-1 -p 10102
+Then point your browser at `http://localhost:8080/browser/` to run the tests
 
-Point your browser at `http://localhost:10102/browser/index.html` to run the tests
+**IMPORTANT NOTE:** When running in the browser, do not hide the tab or windows the tests
+run in. Hiding the tab will mess with the setTimeout() timers resolution (min resolution will be 1000ms)
+and might produce wrong tests result. Leave the tab open and visisble to avoid this.

@@ -12,7 +12,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 import * as autobahn from '../src/autobahn';
-import './test_connect';
+
+// increase timeout as we have some long running setTimeout() mocks
+// will only affect browsers; we set this in mocha.opts
+if (typeof mocha !== 'undefined' && mocha.setup) {
+    (mocha as any).setup({ timeout: 10000 });
+}
+
+describe('Connection', () => {
+    require('./test_connect');
+});
 
 describe('RPC', () => {
     require('./test_rpc_complex');
