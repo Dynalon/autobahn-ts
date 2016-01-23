@@ -28,9 +28,10 @@ before_script:
   # setup virtualenv
   - mkdir crossbar
   - virtualenv crossbar
-  - cd crossbar && source bin/activate
+  - pushd crossbar && source bin/activate
   - pip install -U pip wheel setuptools
   - pip install crossbar[all]
+  - popd
 
 script:
 
