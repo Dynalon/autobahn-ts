@@ -226,92 +226,90 @@ export default class Session {
 
     constructor(socket, unused, onchallenge: Function) {
 
-        var self = this;
-
         this._socket = socket;
         this._onchallenge = onchallenge;
 
         this._id = null;
 
-        self._MESSAGE_MAP[MSG_TYPE.ERROR] = {};
-        self._MESSAGE_MAP[MSG_TYPE.SUBSCRIBED] = self._process_SUBSCRIBED;
-        self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.SUBSCRIBE] = self._process_SUBSCRIBE_ERROR;
-        self._MESSAGE_MAP[MSG_TYPE.UNSUBSCRIBED] = self._process_UNSUBSCRIBED;
-        self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.UNSUBSCRIBE] = self._process_UNSUBSCRIBE_ERROR;
-        self._MESSAGE_MAP[MSG_TYPE.PUBLISHED] = self._process_PUBLISHED;
-        self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.PUBLISH] = self._process_PUBLISH_ERROR;
-        self._MESSAGE_MAP[MSG_TYPE.EVENT] = self._process_EVENT;
-        self._MESSAGE_MAP[MSG_TYPE.REGISTERED] = self._process_REGISTERED;
-        self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.REGISTER] = self._process_REGISTER_ERROR;
-        self._MESSAGE_MAP[MSG_TYPE.UNREGISTERED] = self._process_UNREGISTERED;
-        self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.UNREGISTER] = self._process_UNREGISTER_ERROR;
-        self._MESSAGE_MAP[MSG_TYPE.RESULT] = self._process_RESULT;
-        self._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.CALL] = self._process_CALL_ERROR;
-        self._MESSAGE_MAP[MSG_TYPE.INVOCATION] = self._process_INVOCATION;
+        this._MESSAGE_MAP[MSG_TYPE.ERROR] = {};
+        this._MESSAGE_MAP[MSG_TYPE.SUBSCRIBED] = this._process_SUBSCRIBED;
+        this._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.SUBSCRIBE] = this._process_SUBSCRIBE_ERROR;
+        this._MESSAGE_MAP[MSG_TYPE.UNSUBSCRIBED] = this._process_UNSUBSCRIBED;
+        this._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.UNSUBSCRIBE] = this._process_UNSUBSCRIBE_ERROR;
+        this._MESSAGE_MAP[MSG_TYPE.PUBLISHED] = this._process_PUBLISHED;
+        this._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.PUBLISH] = this._process_PUBLISH_ERROR;
+        this._MESSAGE_MAP[MSG_TYPE.EVENT] = this._process_EVENT;
+        this._MESSAGE_MAP[MSG_TYPE.REGISTERED] = this._process_REGISTERED;
+        this._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.REGISTER] = this._process_REGISTER_ERROR;
+        this._MESSAGE_MAP[MSG_TYPE.UNREGISTERED] = this._process_UNREGISTERED;
+        this._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.UNREGISTER] = this._process_UNREGISTER_ERROR;
+        this._MESSAGE_MAP[MSG_TYPE.RESULT] = this._process_RESULT;
+        this._MESSAGE_MAP[MSG_TYPE.ERROR][MSG_TYPE.CALL] = this._process_CALL_ERROR;
+        this._MESSAGE_MAP[MSG_TYPE.INVOCATION] = this._process_INVOCATION;
 
 
         // callback fired by WAMP transport on receiving a WAMP message
         //
-        self._socket.onmessage = (msg) => {
+        this._socket.onmessage = (msg) => {
 
             var msg_type = msg[0];
 
             // WAMP session not yet open
             //
-            if (!self._id) {
+            if (!this._id) {
 
                 // the first message must be WELCOME, ABORT or CHALLENGE ..
                 //
                 if (msg_type === MSG_TYPE.WELCOME) {
 
-                    self._id = msg[1];
+                    this._id = msg[1];
 
                     // determine actual set of advanced features that can be used
                     //
                     let rf = msg[2];
                     this._detect_features(rf);
 
-                    if (self.onjoin) {
-                        self.onjoin(msg[2]);
+                    if (this.onjoin) {
+                        this.onjoin(msg[2]);
                     }
 
                 } else if (msg_type === MSG_TYPE.ABORT) {
 
                     let [, details, reason] = msg;
 
-                    if (self.onleave) {
-                        self.onleave(reason, details);
+                    if (this.onleave) {
+                        this.onleave(reason, details);
                     }
 
                 } else if (msg_type === MSG_TYPE.CHALLENGE) {
 
-                    if (self._onchallenge) {
+                    if (this._onchallenge) {
 
                         let [, method, extra] = msg;
 
-                        when_fn.call(self._onchallenge, self, method, extra).then(
+                        when_fn.call(this._onchallenge, this, method, extra).then(
                             function(signature) {
                                 let msg = [MSG_TYPE.AUTHENTICATE, signature, {}];
-                                self._send_wamp(msg);
+                                this._send_wamp(msg);
                             },
                             function(err) {
                                 log.debug("onchallenge() raised:", err);
 
                                 var msg = [MSG_TYPE.ABORT, { message: "sorry, I cannot authenticate (onchallenge handler raised an exception)" }, "wamp.error.cannot_authenticate"];
-                                self._send_wamp(msg);
-                                self._socket.close(1000);
+                                this._send_wamp(msg);
+                                this._socket.close(1000);
                             }
                         );
                     } else {
                         log.debug("received WAMP challenge, but no onchallenge() handler set");
 
                         let msg = [MSG_TYPE.ABORT, { message: "sorry, I cannot authenticate (no onchallenge handler set)" }, "wamp.error.cannot_authenticate"];
-                        self._send_wamp(msg);
-                        self._socket.close(1000);
+                        this._send_wamp(msg);
+                        this._socket.close(1000);
                     }
 
                 } else {
-                    self._protocol_violation("unexpected message type " + msg_type);
+                    this._protocol_violation("unexpected message type " + msg_type);
                 }
 
                 // WAMP session is open
@@ -320,20 +318,20 @@ export default class Session {
 
                 if (msg_type === MSG_TYPE.GOODBYE) {
 
-                    if (!self._goodbye_sent) {
+                    if (!this._goodbye_sent) {
 
                         var reply = [MSG_TYPE.GOODBYE, {}, "wamp.error.goodbye_and_out"];
-                        self._send_wamp(reply);
+                        this._send_wamp(reply);
                     }
 
-                    self._id = null;
-                    self._realm = null;
-                    self._features = null;
+                    this._id = null;
+                    this._realm = null;
+                    this._features = null;
 
                     let [, details, reason] = msg;
 
-                    if (self.onleave) {
-                        self.onleave(reason, details);
+                    if (this.onleave) {
+                        this.onleave(reason, details);
                     }
 
                 } else {
@@ -341,24 +339,24 @@ export default class Session {
                     if (msg_type === MSG_TYPE.ERROR) {
 
                         var request_type = msg[1];
-                        if (request_type in self._MESSAGE_MAP[MSG_TYPE.ERROR]) {
+                        if (request_type in this._MESSAGE_MAP[MSG_TYPE.ERROR]) {
 
-                            self._MESSAGE_MAP[msg_type][request_type](msg);
+                            this._MESSAGE_MAP[msg_type][request_type](msg);
 
                         } else {
 
-                            self._protocol_violation("unexpected ERROR message with request_type " + request_type);
+                            this._protocol_violation("unexpected ERROR message with request_type " + request_type);
                         }
 
                     } else {
 
-                        if (msg_type in self._MESSAGE_MAP) {
+                        if (msg_type in this._MESSAGE_MAP) {
 
-                            self._MESSAGE_MAP[msg_type](msg);
+                            this._MESSAGE_MAP[msg_type](msg);
 
                         } else {
 
-                            self._protocol_violation("unexpected message type " + msg_type);
+                            this._protocol_violation("unexpected message type " + msg_type);
                         }
                     }
                 }
@@ -368,9 +366,9 @@ export default class Session {
         // session object constructed .. track creation time
         //
         if ('performance' in global && 'now' in performance) {
-            self._created = performance.now();
+            this._created = performance.now();
         } else {
-            self._created = Date.now();
+            this._created = Date.now();
         }
     };
 
@@ -965,21 +963,19 @@ export default class Session {
     };
 
     log() {
-        var self = this;
-
         if ('console' in global) {
 
             var header = null;
-            if (self._id && self._created) {
+            if (this._id && this._created) {
 
                 var now = null;
                 if ('performance' in global && 'now' in performance) {
-                    now = performance.now() - self._created;
+                    now = performance.now() - this._created;
                 } else {
-                    now = Date.now() - self._created;
+                    now = Date.now() - this._created;
                 }
 
-                header = "WAMP session " + self._id + " on '" + self._realm + "' at " + Math.round(now * 1000) / 1000 + " ms";
+                header = "WAMP session " + this._id + " on '" + this._realm + "' at " + Math.round(now * 1000) / 1000 + " ms";
             } else {
                 header = "WAMP session";
             }
@@ -1007,14 +1003,12 @@ export default class Session {
         util.assert(!authmethods || Array.isArray(authmethods), "Session.join: <authmethods> must be an array []");
         util.assert(!authid || typeof authid === 'string', "Session.join: <authid> must be a string");
 
-        var self = this;
-
-        if (self.isOpen) {
+        if (this.isOpen) {
             throw "session already open";
         }
 
-        self._goodbye_sent = false;
-        self._realm = realm;
+        this._goodbye_sent = false;
+        this._realm = realm;
 
         var details: any = {};
         details.roles = WAMP_FEATURES;
@@ -1027,7 +1021,7 @@ export default class Session {
         }
 
         var msg = [MSG_TYPE.HELLO, realm, details];
-        self._send_wamp(msg);
+        this._send_wamp(msg);
     }
 
 
@@ -1036,9 +1030,7 @@ export default class Session {
         util.assert(!reason || typeof reason === 'string', "Session.leave: <reason> must be a string");
         util.assert(!message || typeof message === 'string', "Session.leave: <message> must be a string");
 
-        var self = this;
-
-        if (!self.isOpen) {
+        if (!this.isOpen) {
             throw "session not open";
         }
 
@@ -1052,8 +1044,8 @@ export default class Session {
         }
 
         var msg = [MSG_TYPE.GOODBYE, details, reason];
-        self._send_wamp(msg);
-        self._goodbye_sent = true;
+        this._send_wamp(msg);
+        this._goodbye_sent = true;
     }
 
 
@@ -1064,16 +1056,14 @@ export default class Session {
         util.assert(!kwargs || kwargs instanceof Object, "Session.call: <kwargs> must be an object {}");
         util.assert(!options || options instanceof Object, "Session.call: <options> must be an object {}");
 
-        var self = this;
-
-        if (!self.isOpen) {
+        if (!this.isOpen) {
             throw "session not open";
         }
 
         options = options || {};
 
         // only set option if user hasn't set a value and global option is "on"
-        if (options.disclose_me === undefined && self._caller_disclose_me) {
+        if (options.disclose_me === undefined && this._caller_disclose_me) {
             options.disclose_me = true;
         }
 
@@ -1081,11 +1071,11 @@ export default class Session {
         //
         var d = when.defer<Result>();
         var request = newid();
-        self._call_reqs[request] = [d, options];
+        this._call_reqs[request] = [d, options];
 
         // construct CALL message
         //
-        var msg = [MSG_TYPE.CALL, request, options, self.resolve(procedure)];
+        var msg = [MSG_TYPE.CALL, request, options, this.resolve(procedure)];
         if (args) {
             msg.push(args);
             if (kwargs) {
@@ -1098,7 +1088,7 @@ export default class Session {
 
         // send WAMP message
         //
-        self._send_wamp(msg);
+        this._send_wamp(msg);
 
         return d.promise;
     }
@@ -1111,16 +1101,14 @@ export default class Session {
         util.assert(!kwargs || kwargs instanceof Object, "Session.publish: <kwargs> must be an object {}");
         util.assert(!options || options instanceof Object, "Session.publish: <options> must be an object {}");
 
-        var self = this;
-
-        if (!self.isOpen) {
+        if (!this.isOpen) {
             throw "session not open";
         }
 
         options = options || {};
 
         // only set option if user hasn't set a value and global option is "on"
-        if (options.disclose_me === undefined && self._publisher_disclose_me) {
+        if (options.disclose_me === undefined && this._publisher_disclose_me) {
             options.disclose_me = true;
         }
 
@@ -1130,12 +1118,12 @@ export default class Session {
         var request = newid();
         if (options.acknowledge) {
             d = when.defer<Publication>();
-            self._publish_reqs[request] = [d, options];
+            this._publish_reqs[request] = [d, options];
         }
 
         // construct PUBLISH message
         //
-        var msg = [MSG_TYPE.PUBLISH, request, options, self.resolve(topic)];
+        var msg = [MSG_TYPE.PUBLISH, request, options, this.resolve(topic)];
         if (args) {
             msg.push(args);
             if (kwargs) {
@@ -1148,7 +1136,7 @@ export default class Session {
 
         // send WAMP message
         //
-        self._send_wamp(msg);
+        this._send_wamp(msg);
 
         if (d) {
             // whenjs has the actual user promise in an attribute
@@ -1163,9 +1151,7 @@ export default class Session {
         util.assert(typeof handler === 'function', "Session.subscribe: <handler> must be a function");
         util.assert(!options || options instanceof Object, "Session.subscribe: <options> must be an object {}");
 
-        var self = this;
-
-        if (!self.isOpen) {
+        if (!this.isOpen) {
             throw "session not open";
         }
 
@@ -1173,7 +1159,7 @@ export default class Session {
         //
         var request = newid();
         var d = when.defer<Subscription>();
-        self._subscribe_reqs[request] = [d, topic, handler, options];
+        this._subscribe_reqs[request] = [d, topic, handler, options];
 
         // construct SUBSCRIBE message
         //
@@ -1183,11 +1169,11 @@ export default class Session {
         } else {
             msg.push({});
         }
-        msg.push(self.resolve(topic));
+        msg.push(this.resolve(topic));
 
         // send WAMP message
         //
-        self._send_wamp(msg);
+        this._send_wamp(msg);
 
         return d.promise;
     }
@@ -1231,17 +1217,15 @@ export default class Session {
 
         util.assert(subscription instanceof Subscription, "Session.unsubscribe: <subscription> must be an instance of class autobahn.Subscription");
 
-        var self = this;
-
-        if (!self.isOpen) {
+        if (!this.isOpen) {
             throw "session not open";
         }
 
-        if (!subscription.active || !(subscription.id in self._subscriptions)) {
+        if (!subscription.active || !(subscription.id in this._subscriptions)) {
             throw "subscription not active";
         }
 
-        var subs = self._subscriptions[subscription.id];
+        var subs = this._subscriptions[subscription.id];
         var i = subs.indexOf(subscription);
 
         if (i === -1) {
@@ -1265,7 +1249,7 @@ export default class Session {
             // create and remember new UNSUBSCRIBE request
             //
             var request = newid();
-            self._unsubscribe_reqs[request] = [d, subscription.id];
+            this._unsubscribe_reqs[request] = [d, subscription.id];
 
             // construct UNSUBSCRIBE message
             //
@@ -1273,7 +1257,7 @@ export default class Session {
 
             // send WAMP message
             //
-            self._send_wamp(msg);
+            this._send_wamp(msg);
         }
 
         return d.promise;
@@ -1284,13 +1268,11 @@ export default class Session {
 
         util.assert(registration instanceof Registration, "Session.unregister: <registration> must be an instance of class autobahn.Registration");
 
-        var self = this;
-
-        if (!self.isOpen) {
+        if (!this.isOpen) {
             throw "session not open";
         }
 
-        if (!registration.active || !(registration.id in self._registrations)) {
+        if (!registration.active || !(registration.id in this._registrations)) {
             throw "registration not active";
         }
 
@@ -1298,7 +1280,7 @@ export default class Session {
         //
         var request = newid();
         var d = when.defer<Registration>();
-        self._unregister_reqs[request] = [d, registration];
+        this._unregister_reqs[request] = [d, registration];
 
         // construct UNREGISTER message
         //
@@ -1306,7 +1288,7 @@ export default class Session {
 
         // send WAMP message
         //
-        self._send_wamp(msg);
+        this._send_wamp(msg);
 
         return d.promise;
     }
@@ -1317,13 +1299,11 @@ export default class Session {
         util.assert(typeof prefix === 'string', "Session.prefix: <prefix> must be a string");
         util.assert(!uri || typeof uri === 'string', "Session.prefix: <uri> must be a string or falsy");
 
-        var self = this;
-
         if (uri) {
-            self._prefixes[prefix] = uri;
+            this._prefixes[prefix] = uri;
         } else {
-            if (prefix in self._prefixes) {
-                delete self._prefixes[prefix];
+            if (prefix in this._prefixes) {
+                delete this._prefixes[prefix];
             }
         }
     }
@@ -1333,14 +1313,12 @@ export default class Session {
 
         util.assert(typeof curie === 'string', "Session.resolve: <curie> must be a string");
 
-        var self = this;
-
         // skip if not a CURIE
         var i = curie.indexOf(":");
         if (i >= 0) {
             var prefix = curie.substring(0, i);
-            if (prefix in self._prefixes) {
-                return self._prefixes[prefix] + '.' + curie.substring(i + 1);
+            if (prefix in this._prefixes) {
+                return this._prefixes[prefix] + '.' + curie.substring(i + 1);
             } else {
                 throw "cannot resolve CURIE prefix '" + prefix + "'";
             }
