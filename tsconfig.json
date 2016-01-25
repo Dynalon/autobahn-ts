@@ -1,9 +1,13 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "outDir": "dist/",
     "target": "es5"
   },
   "exclude": [
-    "typings"
+    "node_modules",
+    "typings",
+    "test/typings",
+    "dist/"
   ]
 }
