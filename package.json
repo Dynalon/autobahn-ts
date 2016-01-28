@@ -11,16 +11,15 @@
   },
   "scripts": {
     "test": "npm run build-test && npm run run-test",
-    "run-test": "mocha --timeout 5000 test/test_mocha.js",
-    "build-test": "tsc -p test && cd test/browser/ && mocha init . && webpack --config webpack.config.js",
-    "watch-test": "tsc --watch -p test",
+    "build": "npm run typings && npm run compile && npm run bundle && npm run minify",
+    "run-test": "mocha --timeout 5000 dist/test/test_mocha.js",
+    "build-test": "cd test/browser/ && mocha init . && webpack --config webpack.config.js",
     "postinstall": "npm run typings",
-    "build-src": "tsc -p src",
+    "compile": "tsc && cp package.json dist/package.json",
     "typings": "typings install && cd test && typings install",
     "watch": "tsc -p src --watch",
     "minify": "uglifyjs -o dist/browser/autobahn.min.js dist/browser/autobahn.js",
-    "bundle": "browserify src/autobahn.js --standalone autobahn -o dist/browser/autobahn.js",
-    "build": "npm run build-src && npm run bundle && npm run minify"
+    "bundle": "browserify dist/src/autobahn.js --standalone autobahn -o dist/browser/autobahn.js"
   },
   "devDependencies": {
     "browserify": "^12.0.1",
