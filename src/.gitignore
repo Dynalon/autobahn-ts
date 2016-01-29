@@ -1,2 +1,0 @@
-# files we already moved to *.ts will output as *.js file, ignore those
-**/*.js
