@@ -8,12 +8,13 @@ module.exports = {
     },
     output: {
         path: __dirname + '/dist/browser/',
-        filename: 'autobahn.js'
+        filename: 'autobahn.js',
+
+        // will be the global variable that the autobahn.js file exports to
+        library: 'autobahn',
+        libraryTarget: 'var'
     },
     externals: {
-        "src/transport/rawsocket": true,
-        "src/transport/websocket/websocket-node": true,
-        "./transport/rawsocket": true,
         'net': true,
         'fs': true,
         'ws': true,
