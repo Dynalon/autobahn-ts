@@ -15,6 +15,10 @@ module.exports = {
         libraryTarget: 'var'
     },
     externals: {
+        // This *has* to exactly match the string as used in the require() statement including
+        // the leading .
+        "./transport/rawsocket": true,
+        "./websocket-node": true,
         'net': true,
         'fs': true,
         'ws': true,
