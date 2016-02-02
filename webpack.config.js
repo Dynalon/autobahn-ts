@@ -1,5 +1,6 @@
 var path = require('path');
-
+// TODO: browsers tests with actual autobahn.js bundled by the build tool
+// (not identic copy)
 module.exports = {
     entry: 'src/autobahn.js',
     resolve: {
@@ -12,7 +13,7 @@ module.exports = {
 
         // will be the global variable that the autobahn.js file exports to
         library: 'autobahn',
-        libraryTarget: 'var'
+        libraryTarget: 'umd'
     },
     externals: {
         // This *has* to exactly match the string as used in the require() statement including
