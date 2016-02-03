@@ -19,7 +19,7 @@
     "typings": "typings install && cd test && typings install",
     "watch": "tsc -p . --watch",
     "minify": "uglifyjs -o dist/browser/autobahn.min.js dist/browser/autobahn.js",
-    "bundle": "webpack -c webpack.config.js && cp dist/browser/autobahn.js test/browser/"
+    "bundle": "webpack --config webpack.config.js && cp dist/browser/autobahn.js test/browser/"
   },
   "devDependencies": {
     "bufferutil": "^1.2.1",
