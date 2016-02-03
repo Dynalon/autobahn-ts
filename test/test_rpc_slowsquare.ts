@@ -65,10 +65,8 @@ it('runs the RPC slowsquare example', function(done) {
 
                 var pl2 = [];
 
-                var t1 = process.hrtime();
                 pl2.push(session.call('com.math.slowsquare', [3]).then(
                     function(res) {
-                        var duration = process.hrtime(t1);
                         test.log("Slow Square:", res);
                     },
                     function(err) {
@@ -76,10 +74,8 @@ it('runs the RPC slowsquare example', function(done) {
                     }
                 ));
 
-                var t2 = process.hrtime();
                 pl2.push(session.call('com.math.square', [3]).then(
                     function(res) {
-                        var duration = process.hrtime(t2);
                         test.log("Quick Square:", res);
                     },
                     function(err) {
