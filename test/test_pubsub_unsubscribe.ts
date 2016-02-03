@@ -60,7 +60,7 @@ it('should unsubscribe a subscriber', function(done) {
                         setTimeout(function() {
                             // nothing received after 250ms means we were successful unsubscribed
                             all_went_well();
-                        }, 250);
+                        }, 1000);
                     });
                 });
             }
@@ -69,12 +69,11 @@ it('should unsubscribe a subscriber', function(done) {
                 session1.leave();
                 session2.leave();
                 let chk = test.check();
-                assert(!chk, chk);
                 done();
             }
 
-            setTimeout(publish, 250);
             sub = session2.subscribe('com.myapp.topic1', onevent1);
+            setTimeout(publish, 300);
         },
         function(err) {
             test.log(err);
