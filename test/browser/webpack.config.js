@@ -1,5 +1,7 @@
 module.exports = {
     entry: 'mocha!../../dist/test/test_mocha.js',
+    library: 'autobahn-tests',
+    libraryTarget: 'var',
     output: {
         path: __dirname,
         filename: 'tests.js'
@@ -9,7 +11,8 @@ module.exports = {
     // available during runtime, the loading will fail.
     externals: {
         'net': true,
-        'fs': true
+        'fs': true,
+        '../src/autobahn': "window.autobahn"
     },
     module: {
         loaders: [

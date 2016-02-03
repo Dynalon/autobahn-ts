@@ -8,6 +8,6 @@
     "node_modules",
     "typings",
     "test/typings",
-    "dist/"
+    "dist"
   ]
 }

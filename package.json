@@ -11,15 +11,15 @@
   },
   "scripts": {
     "test": "npm run build-test && npm run run-test",
-    "build": "npm run typings && npm run compile && npm run bundle && npm run minify",
+    "build": "npm run compile && npm run bundle && npm run minify",
     "run-test": "mocha --timeout 5000 dist/test/test_mocha.js",
-    "build-test": "cd test/browser/ && mocha init . && webpack --config webpack.config.js",
+    "build-test": "npm run build && cd test/browser/ && webpack --config webpack.config.js",
     "postinstall": "npm run typings",
     "compile": "tsc && cp package.json dist/package.json",
     "typings": "typings install && cd test && typings install",
-    "watch": "tsc -p src --watch",
+    "watch": "tsc -p . --watch",
     "minify": "uglifyjs -o dist/browser/autobahn.min.js dist/browser/autobahn.js",
-    "bundle": "webpack -c webpack.config.js"
+    "bundle": "webpack -c webpack.config.js && cp dist/browser/autobahn.js test/browser/"
   },
   "devDependencies": {
     "bufferutil": "^1.2.1",
@@ -30,11 +30,11 @@
     "mocha": "^2.3.4",
     "mocha-loader": "^0.7.1",
     "nodeunit": "^0.9.1",
-    "typescript": "^1.8.0",
+    "typescript": "^1.7.5",
     "typings": "^0.4.1",
     "uglify-js": "^2.6.1",
     "utf-8-validate": "^1.2.1",
-    "webpack": "^1.12.11",
+    "webpack": "^1.12.12",
     "when": ">= 3.7.3",
     "ws": ">= 0.8.0"
   },

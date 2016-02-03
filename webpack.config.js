@@ -2,7 +2,8 @@ var path = require('path');
 // TODO: browsers tests with actual autobahn.js bundled by the build tool
 // (not identic copy)
 module.exports = {
-    entry: 'src/autobahn.js',
+    target: 'web',
+    entry: 'src/autobahn-browser.js',
     resolve: {
         root: path.resolve('./dist/'),
         extensions: ['', '.json', '.js']
@@ -13,18 +14,23 @@ module.exports = {
 
         // will be the global variable that the autobahn.js file exports to
         library: 'autobahn',
-        libraryTarget: 'umd'
+        libraryTarget: 'var'
     },
     externals: {
         // This *has* to exactly match the string as used in the require() statement including
         // the leading .
-        "./transport/rawsocket": true,
-        "./websocket-node": true,
         'net': true,
         'fs': true,
         'ws': true,
         'crypto-js': true,
+
+        // HACK to make webpack happy - we don't include these at all for
+        // browser builds
+        'nonexistingmodule': true,
+        './transport/rawsocket': 'nonexistingmodule',
+        './websocket-node': 'nonexistingmodule',
     },
+
     module: {
         loaders: [
             {
